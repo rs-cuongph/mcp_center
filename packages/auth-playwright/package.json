@@ -1,0 +1,17 @@
+{
+  "name": "@cuongph.dev/mcp-auth-playwright",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cuongph.dev/mcp-core": "workspace:*",
+    "axios": "^1.7.7",
+    "playwright": "^1.48.2"
+  }
+}
