@@ -31,6 +31,7 @@ export function sessionExpired(
   return new McpError("SESSION_EXPIRED", message);
 }
 
+/** @deprecated Kept for backward-compat — prefer sessionExpired() */
 export function authError(message?: string): McpError {
   return sessionExpired(message);
 }

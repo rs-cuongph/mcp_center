@@ -10,4 +10,3 @@ const boot = setupBootstrap({
 export const projectRoot = boot.projectRoot;
 export const fromRoot = boot.fromRoot;
 export const defaultSessionDir = boot.sessionDir;
-export const defaultDownloadsDir = boot.downloadsDir;
