@@ -9,9 +9,14 @@ export interface PlaywrightCookie {
   sameSite?: "Strict" | "Lax" | "None";
 }
 
+export interface StorageOrigin {
+  origin: string;
+  localStorage: Array<{ name: string; value: string }>;
+}
+
 export interface StorageState {
   cookies?: PlaywrightCookie[];
-  origins?: unknown[];
+  origins?: StorageOrigin[];
 }
 
 export type PlaywrightStorageState = StorageState;

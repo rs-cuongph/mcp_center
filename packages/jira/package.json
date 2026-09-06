@@ -36,6 +36,8 @@
   "devDependencies": {
     "@cuongph.dev/mcp-core": "workspace:*",
     "@cuongph.dev/mcp-auth-playwright": "workspace:*",
-    "@types/pdf-parse": "^1.1.5"
+    "@types/mdast": "^4.0.4",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/unist": "^3.0.3"
   }
 }

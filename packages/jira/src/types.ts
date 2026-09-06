@@ -2,35 +2,12 @@
 // Shared types used across auth, jira, and tool layers
 // ---------------------------------------------------------------------------
 
-// Inline Playwright StorageState shape to avoid import resolution issues
-export interface PlaywrightCookie {
-  name: string;
-  value: string;
-  domain: string;
-  path: string;
-  expires: number;
-  httpOnly: boolean;
-  secure: boolean;
-  sameSite: "Strict" | "Lax" | "None";
-}
-
-export interface PlaywrightStorageState {
-  cookies?: PlaywrightCookie[];
-  origins?: Array<{ origin: string; localStorage: Array<{ name: string; value: string }> }>;
-}
-
-/**
- * Persisted session file structure.
- * Wraps Playwright StorageState with metadata for freshness checks.
- */
-export interface SessionFile {
-  /** ISO 8601 timestamp of when the session was last written */
-  savedAt: string;
-  /** The Jira base URL this session was created against */
-  baseUrl: string;
-  /** Raw Playwright browser storage state (cookies + localStorage) */
-  storageState: PlaywrightStorageState;
-}
+// Re-export Playwright storage state and session types from shared auth package
+export type {
+  PlaywrightCookie,
+  StorageState as PlaywrightStorageState,
+  SessionFile,
+} from "@cuongph.dev/mcp-auth-playwright";
 
 /**
  * Extracted HTTP-ready cookies from a SessionFile.

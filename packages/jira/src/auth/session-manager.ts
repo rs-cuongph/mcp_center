@@ -2,7 +2,8 @@ import axios from "axios";
 import { extractMatchedCookies } from "@cuongph.dev/mcp-auth-playwright";
 import { readSession } from "./session-store.js";
 import { authRequired, sessionExpired } from "../errors.js";
-import type { SessionCookies, SessionFile } from "../types.js";
+import type { SessionCookies } from "../types.js";
+import type { SessionFile } from "@cuongph.dev/mcp-auth-playwright";
 
 const AUTO_LOGIN_HINT =
   "Check JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env), or run `jira-auth-login` for interactive SSO.";
