@@ -2,7 +2,7 @@ import { setupBootstrap } from "@cuongph.dev/mcp-core";
 
 const boot = setupBootstrap({
   moduleUrl: import.meta.url,
-  localDirName: "downloads",
+  localDirName: ".",
   homeDirName: "backlog-mcp",
 });
 
