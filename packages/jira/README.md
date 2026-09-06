@@ -72,7 +72,7 @@ Replace the URL with your actual Jira instance. Choose one method:
 **Option A — Interactive SSO (recommended for MFA / multi-step IdP)**
 
 ```bash
-JIRA_BASE_URL=https://jira.yourcompany.com npx -y -p @cuongph.dev/jira-mcp jira-auth-login
+JIRA_BASE_URL=https://jira.yourcompany.com npx -y -p @cuongph.dev/mcp-jira jira-auth-login
 ```
 
 A browser window opens. Complete SSO manually. The session is saved to `.jira/session.json` (or `~/.jira/jira-mcp/session.json` for global npx usage).
@@ -84,7 +84,7 @@ Set both `JIRA_EMAIL` and `JIRA_PASSWORD` in your MCP client `env` block or in `
 Verify the session is active:
 
 ```bash
-JIRA_BASE_URL=https://jira.yourcompany.com npx -y -p @cuongph.dev/jira-mcp jira-auth-check
+JIRA_BASE_URL=https://jira.yourcompany.com npx -y -p @cuongph.dev/mcp-jira jira-auth-check
 ```
 
 ### Step 3 — Add to your MCP client
@@ -94,7 +94,7 @@ No separate server process needed — the MCP client spawns and manages the proc
 #### Gemini CLI
 
 ```bash
-gemini mcp add jira npx -y @cuongph.dev/jira-mcp --env JIRA_BASE_URL=https://jira.yourcompany.com
+gemini mcp add jira npx -y @cuongph.dev/mcp-jira --env JIRA_BASE_URL=https://jira.yourcompany.com
 ```
 
 #### Cursor
@@ -106,7 +106,7 @@ Edit `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in your project:
   "mcpServers": {
     "jira": {
       "command": "npx",
-      "args": ["-y", "@cuongph.dev/jira-mcp"],
+      "args": ["-y", "@cuongph.dev/mcp-jira"],
       "env": {
         "JIRA_BASE_URL": "https://jira.yourcompany.com",
         "GITLAB_TOKEN": "glpat-xxxx",
@@ -126,7 +126,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "jira": {
       "command": "npx",
-      "args": ["-y", "@cuongph.dev/jira-mcp"],
+      "args": ["-y", "@cuongph.dev/mcp-jira"],
       "env": {
         "JIRA_BASE_URL": "https://jira.yourcompany.com",
         "GITLAB_TOKEN": "glpat-xxxx",
@@ -151,9 +151,9 @@ Restart your MCP client after saving the config.
 
 | Command | Description |
 |---|---|
-| `npx @cuongph.dev/jira-mcp jira-auth-login` | Launch SSO browser flow and save session |
-| `npx @cuongph.dev/jira-mcp jira-auth-check` | Validate whether the stored session is alive |
-| `npx @cuongph.dev/jira-mcp jira-auth-clear` | Remove the stored session file |
+| `npx @cuongph.dev/mcp-jira jira-auth-login` | Launch SSO browser flow and save session |
+| `npx @cuongph.dev/mcp-jira jira-auth-check` | Validate whether the stored session is alive |
+| `npx @cuongph.dev/mcp-jira jira-auth-clear` | Remove the stored session file |
 
 ---
 
@@ -322,7 +322,7 @@ Create a Jira issue for a specific issue type.
 
 ### `jira_sync_gitlab_review_defects`
 
-Sync top-level GitLab MR review comments into Jira **Review Defect** issues. Requires `GITLAB_TOKEN` and GitLab project links. Preferred MCP setup is `GITLAB_PROJECTS_JSON` in the MCP `env` block (stringified JSON). Fallback map file path is `.jira/gitlab-projects.json` in a source checkout, or `~/.jira/jira-mcp/gitlab-projects.json` when running `@cuongph.dev/jira-mcp` via npm/npx. Each mapping entry must include a non-empty repository `name`; generated summaries use `[Review Code][<name>][MR !<IID>] ...` to identify the repository.
+Sync top-level GitLab MR review comments into Jira **Review Defect** issues. Requires `GITLAB_TOKEN` and GitLab project links. Preferred MCP setup is `GITLAB_PROJECTS_JSON` in the MCP `env` block (stringified JSON). Fallback map file path is `.jira/gitlab-projects.json` in a source checkout, or `~/.jira/jira-mcp/gitlab-projects.json` when running `@cuongph.dev/mcp-jira` via npm/npx. Each mapping entry must include a non-empty repository `name`; generated summaries use `[Review Code][<name>][MR !<IID>] ...` to identify the repository.
 
 **Input:**
 | Field | Type | Description |

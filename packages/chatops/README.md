@@ -33,7 +33,7 @@ npx -y playwright install chromium
 You must provide your ChatOps URL when logging in. Replace the URL with your actual instance:
 
 ```bash
-CHATOPS_URL=https://chatops.yourcompany.com npx -y -p @cuongph.dev/chatops-mcp@latest chatops-auth-login
+CHATOPS_URL=https://chatops.yourcompany.com npx -y -p @cuongph.dev/mcp-chatops@latest chatops-auth-login
 ```
 
 A browser window will open. Complete your SSO login manually. The session is saved locally to `.chatops/session.json` (or `~/.chatops/chatops-mcp/session.json` for global npx usage).
@@ -41,7 +41,7 @@ A browser window will open. Complete your SSO login manually. The session is sav
 Verify the session is active:
 
 ```bash
-CHATOPS_URL=https://chatops.yourcompany.com npx -y -p @cuongph.dev/chatops-mcp@latest chatops-auth-check
+CHATOPS_URL=https://chatops.yourcompany.com npx -y -p @cuongph.dev/mcp-chatops@latest chatops-auth-check
 ```
 
 ### Step 3 — Add to your MCP client
@@ -57,7 +57,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "chatops": {
       "command": "npx",
-      "args": ["-y", "@cuongph.dev/chatops-mcp"],
+      "args": ["-y", "@cuongph.dev/mcp-chatops"],
       "env": {
         "CHATOPS_URL": "https://chatops.yourcompany.com"
       }
@@ -75,7 +75,7 @@ Edit `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in your project:
   "mcpServers": {
     "chatops": {
       "command": "npx",
-      "args": ["-y", "@cuongph.dev/chatops-mcp"],
+      "args": ["-y", "@cuongph.dev/mcp-chatops"],
       "env": {
         "CHATOPS_URL": "https://chatops.yourcompany.com"
       }
@@ -87,7 +87,7 @@ Edit `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in your project:
 #### Gemini CLI
 
 ```bash
-gemini mcp add chatops npx -y @cuongph.dev/chatops-mcp --env CHATOPS_URL=https://chatops.yourcompany.com
+gemini mcp add chatops npx -y @cuongph.dev/mcp-chatops --env CHATOPS_URL=https://chatops.yourcompany.com
 ```
 
 Or edit `~/.gemini/settings.json`:
@@ -97,7 +97,7 @@ Or edit `~/.gemini/settings.json`:
   "mcpServers": {
     "chatops": {
       "command": "npx",
-      "args": ["-y", "@cuongph.dev/chatops-mcp"],
+      "args": ["-y", "@cuongph.dev/mcp-chatops"],
       "env": {
         "CHATOPS_URL": "https://chatops.yourcompany.com"
       }
@@ -114,9 +114,9 @@ Restart your MCP client after saving the config.
 
 | Command | Description |
 |---------|-------------|
-| `npx @cuongph.dev/chatops-mcp chatops-auth-login` | Launch SSO browser flow and save session |
-| `npx @cuongph.dev/chatops-mcp chatops-auth-check` | Validate whether the stored session is alive |
-| `npx @cuongph.dev/chatops-mcp chatops-auth-clear` | Remove the stored session file |
+| `npx @cuongph.dev/mcp-chatops chatops-auth-login` | Launch SSO browser flow and save session |
+| `npx @cuongph.dev/mcp-chatops chatops-auth-check` | Validate whether the stored session is alive |
+| `npx @cuongph.dev/mcp-chatops chatops-auth-clear` | Remove the stored session file |
 
 ## Environment Variables
 

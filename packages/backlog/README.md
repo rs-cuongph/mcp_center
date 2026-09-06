@@ -43,7 +43,7 @@ An MCP (Model Context Protocol) server for Backlog (Nulab), providing AI agents 
 #### Gemini CLI
 
 ```bash
-gemini mcp add backlog npx -y @cuongph.dev/backlog-mcp --env BACKLOG_BASE_URL=https://yourspace.backlog.com --env BACKLOG_API_KEY=your_api_key_here
+gemini mcp add backlog npx -y @cuongph.dev/mcp-backlog --env BACKLOG_BASE_URL=https://yourspace.backlog.com --env BACKLOG_API_KEY=your_api_key_here
 ```
 
 #### Cursor
@@ -55,7 +55,7 @@ Edit `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in your project:
   "mcpServers": {
     "backlog": {
       "command": "npx",
-      "args": ["-y", "@cuongph.dev/backlog-mcp"],
+      "args": ["-y", "@cuongph.dev/mcp-backlog"],
       "env": {
         "BACKLOG_BASE_URL": "https://yourspace.backlog.com",
         "BACKLOG_API_KEY": "your_api_key_here"
@@ -74,7 +74,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "backlog": {
       "command": "npx",
-      "args": ["-y", "@cuongph.dev/backlog-mcp"],
+      "args": ["-y", "@cuongph.dev/mcp-backlog"],
       "env": {
         "BACKLOG_BASE_URL": "https://yourspace.backlog.com",
         "BACKLOG_API_KEY": "your_api_key_here"
