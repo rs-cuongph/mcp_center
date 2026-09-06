@@ -1,0 +1,213 @@
+// ---------------------------------------------------------------------------
+// Centralized Jira REST API endpoint builders
+// All endpoints target Jira REST API v2 (Jira 8 default)
+// ---------------------------------------------------------------------------
+
+const API_BASE = "/rest/api/2";
+const TEMPO_API_BASE = "/rest/tempo-timesheets/4";
+
+/**
+ * URL for a single issue.
+ * @example issueUrl("https://jira.co", "PROJ-123")
+ *   → "https://jira.co/rest/api/2/issue/PROJ-123"
+ */
+export function issueUrl(baseUrl: string, issueKey: string): string {
+  return `${baseUrl}${API_BASE}/issue/${encodeURIComponent(issueKey)}`;
+}
+
+export function issueTransitionsUrl(baseUrl: string, issueKey: string): string {
+  return `${issueUrl(baseUrl, issueKey)}/transitions`;
+}
+
+export function issueEditMetaUrl(baseUrl: string, issueKey: string): string {
+  return `${issueUrl(baseUrl, issueKey)}/editmeta`;
+}
+
+export function issueCommentUrl(baseUrl: string, issueKey: string): string {
+  return `${issueUrl(baseUrl, issueKey)}/comment`;
+}
+
+export function issueCommentByIdUrl(baseUrl: string, issueKey: string, commentId: string): string {
+  return `${issueCommentUrl(baseUrl, issueKey)}/${encodeURIComponent(commentId)}`;
+}
+
+export function issueAssignUrl(baseUrl: string, issueKey: string): string {
+  return `${issueUrl(baseUrl, issueKey)}/assignee`;
+}
+
+export function issueAttachmentUrl(baseUrl: string, issueKey: string): string {
+  return `${issueUrl(baseUrl, issueKey)}/attachments`;
+}
+
+/**
+ * URL for the create-issue endpoint.
+ */
+export function createIssueUrl(baseUrl: string): string {
+  return `${baseUrl}${API_BASE}/issue`;
+}
+
+/**
+ * URL for the JQL search endpoint.
+ */
+export function searchUrl(baseUrl: string): string {
+  return `${baseUrl}${API_BASE}/search`;
+}
+
+/**
+ * URL for the current-user endpoint (GET /rest/api/2/myself).
+ */
+export function myselfUrl(baseUrl: string): string {
+  return `${baseUrl}${API_BASE}/myself`;
+}
+
+export function userSearchUrl(baseUrl: string): string {
+  return `${baseUrl}${API_BASE}/user/search`;
+}
+
+/**
+ * URL for the Tempo create-worklog endpoint (POST).
+ */
+export function tempoCreateWorklogUrl(baseUrl: string): string {
+  return `${baseUrl}${TEMPO_API_BASE}/worklogs`;
+}
+
+export function tempoSearchWorklogsUrl(baseUrl: string): string {
+  return `${baseUrl}${TEMPO_API_BASE}/worklogs/search`;
+}
+
+export function tempoWorklogUrl(baseUrl: string, worklogId: string): string {
+  return `${baseUrl}${TEMPO_API_BASE}/worklogs/${encodeURIComponent(worklogId)}`;
+}
+
+export function tempoTimesheetApprovalUrl(baseUrl: string): string {
+  return `${baseUrl}${TEMPO_API_BASE}/timesheet-approval`;
+}
+
+export function tempoTimesheetApprovalLogUrl(baseUrl: string, teamId: number, periodStartDate: string): string {
+  return `${baseUrl}${TEMPO_API_BASE}/timesheet-approval/log?teamId=${encodeURIComponent(teamId)}&periodStartDate=${encodeURIComponent(periodStartDate)}`;
+}
+
+/**
+ * URL for step 1 of the Tempo timesheet export flow — registers a search
+ * filter and returns a filter id used by `tempoWorklogsExportUrl`.
+ */
+export function tempoWorklogsExportFilterUrl(baseUrl: string): string {
+  return `${baseUrl}${TEMPO_API_BASE}/worklogs/export/filter`;
+}
+
+/**
+ * URL for step 2 of the Tempo timesheet export flow — streams back the
+ * binary export file for a previously-registered filter id.
+ */
+export function tempoWorklogsExportUrl(baseUrl: string, filterId: string): string {
+  return `${baseUrl}${TEMPO_API_BASE}/worklogs/export/${encodeURIComponent(filterId)}`;
+}
+
+export function tempoTeamSearchUrl(baseUrl: string): string {
+  return `${baseUrl}/rest/tempo-teams/3/search`;
+}
+
+export function issueLinkUrl(baseUrl: string): string {
+  return `${baseUrl}${API_BASE}/issueLink`;
+}
+
+export function issueLinkByIdUrl(baseUrl: string, linkId: string): string {
+  return `${issueLinkUrl(baseUrl)}/${encodeURIComponent(linkId)}`;
+}
+
+export function projectsUrl(baseUrl: string): string {
+  return `${baseUrl}${API_BASE}/project`;
+}
+
+export function projectComponentsUrl(baseUrl: string, projectKey: string): string {
+  return `${baseUrl}${API_BASE}/project/${encodeURIComponent(projectKey)}/components`;
+}
+
+export function prioritiesUrl(baseUrl: string): string {
+  return `${baseUrl}${API_BASE}/priority`;
+}
+
+import { CUSTOM_FIELD } from "./constants.js";
+
+/**
+ * Fields to request for a full issue (jira_get_issue).
+ *
+ * Standard fields + all custom fields that the internal Jira instance uses.
+ */
+export const ISSUE_FIELDS: string[] = [
+  // Standard
+  "summary",
+  "description",
+  "status",
+  "resolution",
+  "assignee",
+  "reporter",
+  "priority",
+  "issuetype",
+  "labels",
+  "components",
+  "versions",          // affectsVersions
+  "fixVersions",
+  "created",
+  "updated",
+  "duedate",
+  "timetracking",
+  "subtasks",
+  "parent",
+  "attachment",
+
+  // Custom — People
+  CUSTOM_FIELD.DEFECT_OWNER,
+
+  // Custom — Dates
+  CUSTOM_FIELD.PLAN_START_DATE,
+  CUSTOM_FIELD.ACTUAL_START_DATE,
+  CUSTOM_FIELD.ACTUAL_END_DATE,
+
+  // Custom — Relations
+  CUSTOM_FIELD.EPIC_LINK,
+  CUSTOM_FIELD.EPIC_NAME,
+
+  // Custom — Bug / Defect
+  CUSTOM_FIELD.PROJECT_STAGES,
+  CUSTOM_FIELD.DEFECT_TYPE,
+  CUSTOM_FIELD.DEFECT_ORIGIN,
+  CUSTOM_FIELD.CAUSE_CATEGORY,
+  CUSTOM_FIELD.SEVERITY,
+  CUSTOM_FIELD.DEGRADE,
+  CUSTOM_FIELD.IMPACT_ASSESSMENT,
+  CUSTOM_FIELD.CAUSE_ANALYSIS,
+  CUSTOM_FIELD.ACTION,
+  CUSTOM_FIELD.DOD,
+];
+
+/**
+ * Fields to request for a compact issue list (jira_search_issues).
+ */
+export const SEARCH_FIELDS: string[] = [
+  "summary",
+  "status",
+  "issuetype",
+  "assignee",
+  "priority",
+  "created",
+  "updated",
+  "duedate",
+  "timetracking",
+
+  // Custom — People
+  CUSTOM_FIELD.DEFECT_OWNER,
+
+  // Custom — Dates
+  CUSTOM_FIELD.PLAN_START_DATE,
+  CUSTOM_FIELD.ACTUAL_START_DATE,
+  CUSTOM_FIELD.ACTUAL_END_DATE,
+
+  // Custom — Bug / Defect
+  CUSTOM_FIELD.SEVERITY,
+  CUSTOM_FIELD.DEFECT_ORIGIN,
+
+  // Custom — Work/Progress
+  CUSTOM_FIELD.PERCENT_DONE,
+  CUSTOM_FIELD.TYPE_OF_WORK,
+];
