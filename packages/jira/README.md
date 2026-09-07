@@ -40,7 +40,6 @@ An internal MCP (Model Context Protocol) server for Jira 8 via HTTP Basic Auth a
 - 📎 `jira_add_attachment` — upload workspace files as issue attachments
 - 📤 `jira_upload_attachment_content` — attach AI-generated content (text, CSV, JSON…) directly without a local file
 - 🗂️ `jira_get_projects` / `jira_get_components` / `jira_get_priorities` — discover common Jira metadata
-- 🔀 `jira_sync_gitlab_review_defects` — sync GitLab MR review comments into Jira Review Defects (`mrState` or single `mrIid`)
 - 🛡️ Clean `SESSION_EXPIRED` / `AUTH_REQUIRED` errors with configuration hints
 - 🖥️ CLI binary `jira-mcp` managed via stdio transport
 
@@ -89,9 +88,7 @@ Edit `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in your project:
       "env": {
         "JIRA_BASE_URL": "https://jira.yourcompany.com",
         "JIRA_EMAIL": "you@yourcompany.com",
-        "JIRA_PASSWORD": "secret",
-        "GITLAB_TOKEN": "glpat-xxxx",
-        "GITLAB_PROJECTS_JSON": "{\"PROJ\":[{\"name\":\"app-frontend\",\"gitlabBaseUrl\":\"https://gitlab.example.com\",\"projectPath\":\"group/app-frontend\"}]}"
+        "JIRA_PASSWORD": "secret"
       }
     }
   }
@@ -111,9 +108,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
       "env": {
         "JIRA_BASE_URL": "https://jira.yourcompany.com",
         "JIRA_EMAIL": "you@yourcompany.com",
-        "JIRA_PASSWORD": "secret",
-        "GITLAB_TOKEN": "glpat-xxxx",
-        "GITLAB_PROJECTS_JSON": "{\"PROJ\":[{\"name\":\"app-frontend\",\"gitlabBaseUrl\":\"https://gitlab.example.com\",\"projectPath\":\"group/app-frontend\"}]}"
+        "JIRA_PASSWORD": "secret"
       }
     }
   }
@@ -124,9 +119,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 > - source checkout: `<repo>/.env`
 > - npm/npx install: `~/.jira/jira-mcp/.env`
 >
-> Supported variables include `JIRA_BASE_URL` (required), `JIRA_EMAIL` (required), `JIRA_PASSWORD` (required), `LOG_LEVEL`, and GitLab sync vars (`GITLAB_TOKEN`, `GITLAB_PROJECTS_JSON`, etc.). See `.env.example`.
->
-> For GitLab sync, put `GITLAB_TOKEN` and `GITLAB_PROJECTS_JSON` in the MCP `env` block or `.env`. MCP clients do not pass custom top-level blocks like `"config": { ... }` to the server process.
+> Supported variables include `JIRA_BASE_URL` (required), `JIRA_EMAIL` (required), `JIRA_PASSWORD` (required), and `LOG_LEVEL`. See `.env.example`.
 
 Restart your MCP client after saving the config.
 
@@ -272,22 +265,6 @@ Create a Jira issue for a specific issue type.
 
 ---
 
-### `jira_sync_gitlab_review_defects`
-
-Sync top-level GitLab MR review comments into Jira **Review Defect** issues. Requires `GITLAB_TOKEN` and GitLab project links. Preferred MCP setup is `GITLAB_PROJECTS_JSON` in the MCP `env` block (stringified JSON). Fallback map file path is `.jira/gitlab-projects.json` in a source checkout, or `~/.jira/jira-mcp/gitlab-projects.json` when running `@cuongph.dev/mcp-jira` via npm/npx. Each mapping entry must include a non-empty repository `name`; generated summaries use `[Review Code][<name>][MR !<IID>] ...` to identify the repository.
-
-**Input:**
-| Field | Type | Description |
-|---|---|---|
-| `projectKey` | `string` | Jira project key mapped in `GITLAB_PROJECTS_JSON` or the GitLab projects file |
-| `mrState` | `string` | Optional: `opened`, `merged` (default), or `closed` |
-| `mrIid` | `number` | Optional: process one MR only (ignores `mrState`) |
-| `dryRun` | `boolean` | Default `true` — preview only; `false` to create issues |
-| `userOverrides` | `object` | GitLab username → Jira username/email when lookup fails |
-
-**Docs:** [`docs/tools/jira_sync_gitlab_review_defects.md`](docs/tools/jira_sync_gitlab_review_defects.md)
-
----
 
 ### `jira_add_worklog`
 

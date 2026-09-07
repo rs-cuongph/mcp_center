@@ -50,8 +50,6 @@ import { handleGetTimesheetApprovalLog } from "./tools/get-timesheet-approval-lo
 import { handleSearchWorklogs } from "./tools/search-worklogs.js";
 import { handleExportProjectTimesheet } from "./tools/export-project-timesheet.js";
 import { handleActOnTimesheetApproval } from "./tools/act-on-timesheet-approval.js";
-import { handleSyncGitlabReviewDefects, reviewDefectProjectStageEnum } from "./tools/sync-gitlab-review-defects.js";
-import { DEFAULT_REVIEW_DEFECT_PROJECT_STAGE } from "./jira/gitlab-review-defect.js";
 
 // ---------------------------------------------------------------------------
 // Tool confirmation instructions (appended to write/destructive tool descriptions)
@@ -1030,52 +1028,6 @@ ENCODING:
     }
   );
 
-  server.tool(
-    "jira_sync_gitlab_review_defects",
-    "Sync top-level review comments from GitLab MRs into Jira Review Defect issues. Choose mrState=opened|merged|closed to scan many MRs, or pass mrIid to process a single MR. Reads GitLab links from GITLAB_PROJECTS_JSON (preferred in MCP env) or GITLAB_PROJECTS_FILE (default: .jira/gitlab-projects.json in source checkout, ~/.jira/jira-mcp/gitlab-projects.json in npm/npx). Requires GITLAB_TOKEN. Default dryRun=true (preview only). Set dryRun=false to create issues. If assignee/reporter lookup fails, returns needsUserMapping — re-call with userOverrides." +
-      WRITE_CONFIRMATION,
-    {
-      projectKey: z
-        .string()
-        .describe("Jira project key, e.g. PROJ. Must exist in GITLAB_PROJECTS_JSON or the configured GitLab projects file."),
-      mrState: z
-        .enum(["opened", "merged", "closed"])
-        .optional()
-        .default("merged")
-        .describe(
-          'Which MRs to scan when mrIid is omitted: "opened", "merged" (default), or "closed". Ignored when mrIid is set.'
-        ),
-      mrIid: z
-        .number()
-        .int()
-        .positive()
-        .optional()
-        .describe(
-          "Process only this one merge request IID (searched across configured GitLab project links)."
-        ),
-      dryRun: z
-        .boolean()
-        .optional()
-        .default(true)
-        .describe("When true (default), only preview candidates. When false, create Review Defects."),
-      userOverrides: z
-        .record(z.string())
-        .optional()
-        .describe(
-          "Map GitLab username → Jira username or email when automatic {user}@runsystem.net lookup fails."
-        ),
-      projectStage: z
-        .enum(reviewDefectProjectStageEnum)
-        .optional()
-        .default(DEFAULT_REVIEW_DEFECT_PROJECT_STAGE)
-        .describe(
-          'Jira Project Stages (customfield_10339). Default "CODING". Other values: BASIC_DESIGN, DETAIL_DESIGN, TEST_UT, etc.'
-        ),
-    },
-    async (input) => {
-      return handleSyncGitlabReviewDefects(input, config);
-    }
-  );
 
 }
 

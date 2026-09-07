@@ -1,13 +1,6 @@
-import { defaultSessionDir, defaultDownloadsDir } from "./bootstrap.js";
-import { join } from "path";
+import { defaultDownloadsDir } from "./bootstrap.js";
 import { z } from "zod";
 import { parseEnv } from "@cuongph.dev/mcp-core";
-
-const nonEmptyStringOptional = z.preprocess((value) => {
-  if (typeof value !== "string") return value;
-  const trimmed = value.trim();
-  return trimmed.length === 0 ? undefined : trimmed;
-}, z.string().min(1).optional());
 
 // ---------------------------------------------------------------------------
 // Schema — only user-facing variables are read from the environment.
@@ -21,13 +14,6 @@ const schema = z.object({
 
   JIRA_EMAIL: z.string().min(1, "JIRA_EMAIL is required"),
   JIRA_PASSWORD: z.string().min(1, "JIRA_PASSWORD is required"),
-
-  /** GitLab personal access token (required by jira_sync_gitlab_review_defects). */
-  GITLAB_TOKEN: nonEmptyStringOptional,
-  GITLAB_PROJECTS_JSON: nonEmptyStringOptional,
-  GITLAB_PROJECTS_FILE: nonEmptyStringOptional,
-  GITLAB_DEDUP_FILE: nonEmptyStringOptional,
-
   LOG_LEVEL: z
     .enum(["debug", "info", "warn", "error"])
     .default("info"),
@@ -53,10 +39,6 @@ function loadConfig(): Config {
   return {
     ...DEFAULTS,
     ...data,
-    GITLAB_PROJECTS_FILE:
-      data.GITLAB_PROJECTS_FILE ?? join(defaultSessionDir, "gitlab-projects.json"),
-    GITLAB_DEDUP_FILE:
-      data.GITLAB_DEDUP_FILE ?? join(defaultSessionDir, "gitlab-review-defects.json"),
   };
 }
 
