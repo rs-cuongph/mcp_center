@@ -7,6 +7,7 @@ import { ISSUE_TYPE } from "./jira/constants.js";
 import { handleAddComment } from "./tools/add-comment.js";
 import { handleAddAttachment } from "./tools/add-attachment.js";
 import { handleUploadAttachmentContent } from "./tools/upload-attachment-content.js";
+import { handleDownloadAttachment } from "./tools/download-attachment.js";
 import { handleAssignIssue } from "./tools/assign-issue.js";
 import { handleBulkLinkIssues } from "./tools/bulk-link-issues.js";
 import { handleBulkTransitionIssues } from "./tools/bulk-transition-issues.js";
@@ -825,6 +826,18 @@ RETURNS: filename, size, MIME type, and attachment ID for each uploaded file.` +
     },
     async (input) => {
       return handleUploadAttachmentContent(input, config);
+    }
+  );
+
+  server.tool(
+    "jira_download_attachment",
+    "Download any Jira issue attachment (any type, including video/mp4, mov, webm, audio, archives) and save it to ATTACHMENT_WORKSPACE. Select by exact filename from jira_get_issue. Returns only the saved file path, size, and MIME type — the file bytes are NOT returned, so this does not consume context tokens.",
+    {
+      issueKey: z.string().describe("Jira issue key, e.g. PROJ-123"),
+      filename: z.string().describe("Exact attachment filename from jira_get_issue (any type, incl. video)."),
+    },
+    async (input) => {
+      return handleDownloadAttachment(input, config);
     }
   );
 
