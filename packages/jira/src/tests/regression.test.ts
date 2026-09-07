@@ -3,8 +3,7 @@
  *
  * 1. server.ts  — concurrent /mcp requests each get their own McpServer instance
  * 2. session-manager — 302/307/308 redirects are treated as SESSION_EXPIRED
- * 3. playwright-auth — session not written if pre-save validation fails
- * 4. tools (get-issue / search-issues) — auth failure returns isError: true
+ * 3. tools (get-issue / search-issues) — auth failure returns isError: true
  *
  * IMPORTANT: vi.mock() is hoisted to the top of the file by Vitest, so all
  * mock factories must be self-contained (no references to variables defined
@@ -20,11 +19,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Mocked at the top so they're available for all test groups that need them.
 // Individual tests override behaviour with mockImplementation.
 
-vi.mock("../auth/session-store.js", () => ({
-  readSession: vi.fn(),
-  writeSession: vi.fn(),
-  clearSession: vi.fn(),
-}));
 
 vi.mock("axios", async () => {
   const actual = await vi.importActual<typeof import("axios")>("axios");
@@ -65,32 +59,14 @@ describe("server factory (concurrent request isolation)", () => {
 describe("loadAndValidateSession — 3xx redirect handling", () => {
   const BASE_URL = "https://jira.example.com";
 
-  const VALID_SESSION = {
-    savedAt: new Date().toISOString(),
-    baseUrl: BASE_URL,
-    storageState: {
-      cookies: [
-        {
-          name: "JSESSIONID",
-          value: "abc",
-          domain: "jira.example.com",
-          path: "/",
-          expires: -1,
-          httpOnly: true,
-          secure: true,
-          sameSite: "Lax" as const,
-        },
-      ],
-      origins: [],
-    },
-  };
-
-  beforeEach(async () => {
-    const { readSession } = await import("../auth/session-store.js");
-    vi.mocked(readSession).mockResolvedValue(VALID_SESSION);
+  beforeEach(() => {
+    process.env.JIRA_EMAIL = "user@example.com";
+    process.env.JIRA_PASSWORD = "secret";
   });
 
   afterEach(() => {
+    delete process.env.JIRA_EMAIL;
+    delete process.env.JIRA_PASSWORD;
     vi.clearAllMocks();
   });
 
@@ -103,7 +79,7 @@ describe("loadAndValidateSession — 3xx redirect handling", () => {
       })
     );
     const { loadAndValidateSession } = await import("../auth/session-manager.js");
-    return loadAndValidateSession(".jira/session.json", BASE_URL, "/rest/api/2/myself");
+    return loadAndValidateSession(BASE_URL, "/rest/api/2/myself");
   }
 
   it("throws SESSION_EXPIRED on 302 Found", async () => {
@@ -119,84 +95,24 @@ describe("loadAndValidateSession — 3xx redirect handling", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 3. playwright-auth — validateCandidateSession (no disk side-effects)
-// ---------------------------------------------------------------------------
-
-describe("validateCandidateSession", () => {
-  const BASE_URL = "https://jira.example.com";
-
-  const FAKE_SESSION = {
-    savedAt: new Date().toISOString(),
-    baseUrl: BASE_URL,
-    storageState: { cookies: [], origins: [] },
-  };
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("returns false when Jira returns 401 for the candidate session", async () => {
-    const axiosMod = await import("axios");
-    vi.mocked(axiosMod.default.get).mockRejectedValue(
-      Object.assign(new Error("unauth"), {
-        isAxiosError: true,
-        response: { status: 401 },
-      })
-    );
-
-    const { validateCandidateSession } = await import("../auth/playwright-auth.js");
-    const result = await validateCandidateSession(FAKE_SESSION, BASE_URL, "/rest/api/2/myself");
-    expect(result).toBe(false);
-  });
-
-  it("returns false when Jira returns 302 for the candidate session", async () => {
-    const axiosMod = await import("axios");
-    vi.mocked(axiosMod.default.get).mockRejectedValue(
-      Object.assign(new Error("redirect"), {
-        isAxiosError: true,
-        response: { status: 302 },
-      })
-    );
-
-    const { validateCandidateSession } = await import("../auth/playwright-auth.js");
-    const result = await validateCandidateSession(FAKE_SESSION, BASE_URL, "/rest/api/2/myself");
-    expect(result).toBe(false);
-  });
-
-  it("returns true when Jira returns 200 for the candidate session", async () => {
-    const axiosMod = await import("axios");
-    vi.mocked(axiosMod.default.get).mockResolvedValue({
-      status: 200,
-      data: { accountId: "abc123", displayName: "Test User" },
-    });
-
-    const { validateCandidateSession } = await import("../auth/playwright-auth.js");
-    const result = await validateCandidateSession(FAKE_SESSION, BASE_URL, "/rest/api/2/myself");
-    expect(result).toBe(true);
-  });
-});
 
 // ---------------------------------------------------------------------------
-// 4. Tools — auth failure must return isError: true
+// 3. Tools — auth failure must return isError: true
 // ---------------------------------------------------------------------------
 
 describe("tool auth failure — isError response", () => {
   const MOCK_CONFIG = {
     JIRA_BASE_URL: "https://jira.example.com",
-    JIRA_SESSION_FILE: ".jira/session.json",
     JIRA_VALIDATE_PATH: "/rest/api/2/myself",
     LOG_LEVEL: "info",
-    PLAYWRIGHT_HEADLESS: false,
-    PLAYWRIGHT_BROWSER: "chromium",
     ATTACHMENT_WORKSPACE: process.cwd(),
   };
 
-  // Drive session validation failure via the session-store mock:
-  // readSession returns null → loadAndValidateSession throws AUTH_REQUIRED
+  // Drive session validation failure via missing credentials:
+  // loadAndValidateSession throws AUTH_REQUIRED
   beforeEach(async () => {
-    const { readSession } = await import("../auth/session-store.js");
-    vi.mocked(readSession).mockResolvedValue(null);
+    delete process.env.JIRA_EMAIL;
+    delete process.env.JIRA_PASSWORD;
   });
 
   afterEach(() => {

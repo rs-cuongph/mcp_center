@@ -128,7 +128,6 @@ describe("handleAddWorklog — session guard", () => {
         const { McpError } = await import("../errors.js");
         throw new McpError("AUTH_REQUIRED", "No session found. Run `jira-auth-login`.");
       }),
-      extractCookies: vi.fn(),
     };
   });
 

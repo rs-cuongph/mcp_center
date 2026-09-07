@@ -113,11 +113,7 @@ export async function handleAddCommentWithFile(
   // Load session once — reuse for both API calls
   let sessionCookies: SessionCookies;
   try {
-    sessionCookies = await loadAndValidateSession(
-      cfg.JIRA_SESSION_FILE,
-      cfg.JIRA_BASE_URL,
-      cfg.JIRA_VALIDATE_PATH
-    );
+    sessionCookies = await loadAndValidateSession(cfg.JIRA_BASE_URL, cfg.JIRA_VALIDATE_PATH);
   } catch (err: unknown) {
     if (isMcpError(err)) return authErrorContent(err.code, err.message);
     throw err;

@@ -2,15 +2,9 @@
 // Shared types used across auth, jira, and tool layers
 // ---------------------------------------------------------------------------
 
-// Re-export Playwright storage state and session types from shared auth package
-export type {
-  PlaywrightCookie,
-  StorageState as PlaywrightStorageState,
-  SessionFile,
-} from "@cuongph.dev/mcp-auth-playwright";
 
 /**
- * Extracted HTTP-ready cookies from a SessionFile.
+ * Session cookies or HTTP Basic authorization header.
  */
 export interface SessionCookies {
   /** Value suitable for the Cookie request header */

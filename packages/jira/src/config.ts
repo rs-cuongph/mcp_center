@@ -19,8 +19,8 @@ const schema = z.object({
     .string()
     .url("JIRA_BASE_URL must be a valid URL (e.g. https://jira.yourcompany.com)"),
 
-  JIRA_EMAIL: nonEmptyStringOptional,
-  JIRA_PASSWORD: nonEmptyStringOptional,
+  JIRA_EMAIL: z.string().min(1, "JIRA_EMAIL is required"),
+  JIRA_PASSWORD: z.string().min(1, "JIRA_PASSWORD is required"),
 
   /** GitLab personal access token (required by jira_sync_gitlab_review_defects). */
   GITLAB_TOKEN: nonEmptyStringOptional,
@@ -31,16 +31,6 @@ const schema = z.object({
   LOG_LEVEL: z
     .enum(["debug", "info", "warn", "error"])
     .default("info"),
-}).superRefine((values, ctx) => {
-  const hasEmail = values.JIRA_EMAIL !== undefined;
-  const hasPassword = values.JIRA_PASSWORD !== undefined;
-  if (hasEmail !== hasPassword) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: [hasEmail ? "JIRA_PASSWORD" : "JIRA_EMAIL"],
-      message: "JIRA_EMAIL and JIRA_PASSWORD must be configured together",
-    });
-  }
 });
 
 // ---------------------------------------------------------------------------
@@ -48,11 +38,8 @@ const schema = z.object({
 // ---------------------------------------------------------------------------
 
 const DEFAULTS = {
-  JIRA_SESSION_FILE: join(defaultSessionDir, "session.json"), // absolute path
   JIRA_VALIDATE_PATH: "/rest/api/2/myself",
   ATTACHMENT_WORKSPACE: defaultDownloadsDir,                   // absolute path
-  PLAYWRIGHT_HEADLESS: false,
-  PLAYWRIGHT_BROWSER: "chromium" as const,
 } as const;
 
 export type Config = z.infer<typeof schema> & typeof DEFAULTS;

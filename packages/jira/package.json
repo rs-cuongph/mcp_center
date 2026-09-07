@@ -1,15 +1,12 @@
 {
   "name": "@cuongph.dev/mcp-jira",
   "version": "0.1.15",
-  "description": "MCP server for internal Jira 8 via SSO session bootstrap with Playwright",
+  "description": "MCP server for internal Jira 8 via HTTP Basic Auth",
   "license": "MIT",
   "type": "module",
   "engines": { "node": ">=20" },
   "bin": {
-    "jira-mcp": "dist/server.js",
-    "jira-auth-login": "dist/cli/auth-login.js",
-    "jira-auth-check": "dist/cli/auth-check.js",
-    "jira-auth-clear": "dist/cli/auth-clear.js"
+    "jira-mcp": "dist/server.js"
   },
   "files": ["dist", ".jira/gitlab-projects.json.example", "README.md", "LICENSE"],
   "scripts": {
@@ -26,7 +23,6 @@
     "dotenv": "^16.4.5",
     "mammoth": "^1.12.0",
     "pdf-parse": "^2.4.5",
-    "playwright": "^1.48.2",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
     "remark-parse": "^11.0.0",
@@ -35,7 +31,6 @@
   },
   "devDependencies": {
     "@cuongph.dev/mcp-core": "workspace:*",
-    "@cuongph.dev/mcp-auth-playwright": "workspace:*",
     "@types/mdast": "^4.0.4",
     "@types/pdf-parse": "^1.1.5",
     "@types/unist": "^3.0.3"

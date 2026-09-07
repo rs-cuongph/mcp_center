@@ -21,15 +21,14 @@ import {
 
 const mockConfig = {
   JIRA_BASE_URL: "https://jira.example.com",
-  JIRA_SESSION_FILE: ".jira/session.json",
+  JIRA_EMAIL: "user@example.com",
+  JIRA_PASSWORD: "secret",
   JIRA_VALIDATE_PATH: "/rest/api/2/myself" as const,
   ATTACHMENT_WORKSPACE: "downloads",
   GITLAB_PROJECTS_FILE: ".jira/gitlab-projects.json",
   GITLAB_DEDUP_FILE: ".jira/gitlab-review-defects.json",
   GITLAB_PROJECTS_JSON: undefined,
   LOG_LEVEL: "info" as const,
-  PLAYWRIGHT_HEADLESS: false as const,
-  PLAYWRIGHT_BROWSER: "chromium" as const,
   GITLAB_TOKEN: "glpat-test",
 };
 

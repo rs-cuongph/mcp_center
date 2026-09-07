@@ -121,9 +121,6 @@ importers:
       pdf-parse:
         specifier: ^2.4.5
         version: 2.4.5
-      playwright:
-        specifier: ^1.48.2
-        version: 1.63.0
       remark:
         specifier: ^15.0.1
         version: 15.0.1
@@ -140,9 +137,6 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@cuongph.dev/mcp-auth-playwright':
-        specifier: workspace:*
-        version: link:../auth-playwright
       '@cuongph.dev/mcp-core':
         specifier: workspace:*
         version: link:../core

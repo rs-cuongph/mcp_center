@@ -13,11 +13,7 @@ export type SearchTempoTeamsInput = z.infer<typeof searchTempoTeamsSchema>;
 
 export async function handleSearchTempoTeams(input: SearchTempoTeamsInput, config: Config) {
   try {
-    const session = await loadAndValidateSession(
-      config.JIRA_SESSION_FILE,
-      config.JIRA_BASE_URL,
-      config.JIRA_VALIDATE_PATH
-    );
+    const session = await loadAndValidateSession(config.JIRA_BASE_URL, config.JIRA_VALIDATE_PATH);
 
     const client = new JiraHttpClient(config.JIRA_BASE_URL, session);
     const teams = await client.searchTempoTeams(input.query);
