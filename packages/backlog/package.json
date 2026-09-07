@@ -1,6 +1,6 @@
 {
   "name": "@cuongph.dev/mcp-backlog",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "MCP server for Backlog (Nulab) — read issues, comments, attachments via API Key",
   "license": "MIT",
   "type": "module",

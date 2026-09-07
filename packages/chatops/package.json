@@ -1,6 +1,6 @@
 {
   "name": "@cuongph.dev/mcp-chatops",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "MCP server for ChatOps — SSO session auth via Playwright, read/send messages",
   "license": "MIT",
   "type": "module",

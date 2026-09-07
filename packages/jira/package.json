@@ -1,6 +1,6 @@
 {
   "name": "@cuongph.dev/mcp-jira",
-  "version": "0.1.15",
+  "version": "0.2.0",
   "description": "MCP server for internal Jira 8 via HTTP Basic Auth",
   "license": "MIT",
   "type": "module",
