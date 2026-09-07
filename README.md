@@ -1,18 +1,18 @@
 # mcp_center
 
-Monorepo cho 3 MCP server độc lập. Mỗi group cài và cấu hình riêng.
+Monorepo of three independent MCP servers. Each group is installed and configured separately.
 
-| Group   | Package                    | Bin(s)                                            | Xác thực                 | Playwright |
-|---------|----------------------------|---------------------------------------------------|--------------------------|------------|
-| backlog | `@cuongph.dev/mcp-backlog` | `backlog-mcp`                                     | API Key                  | Không      |
-| jira    | `@cuongph.dev/mcp-jira`    | `jira-mcp`                                        | HTTP Basic Auth          | Không      |
-| chatops | `@cuongph.dev/mcp-chatops` | `chatops-mcp`, `chatops-auth-login/-check/-clear` | SSO session (login 1 lần)| Có         |
+| Group   | Package                    | Bin(s)                                            | Auth                      | Playwright |
+|---------|----------------------------|---------------------------------------------------|---------------------------|------------|
+| backlog | `@cuongph.dev/mcp-backlog` | `backlog-mcp`                                     | API Key                   | No         |
+| jira    | `@cuongph.dev/mcp-jira`    | `jira-mcp`                                        | HTTP Basic Auth           | No         |
+| chatops | `@cuongph.dev/mcp-chatops` | `chatops-mcp`, `chatops-auth-login/-check/-clear` | SSO session (login once)  | Yes        |
 
-## Cài đặt
+## Installation
 
-**Xem hướng dẫn đầy đủ: [`docs/INSTALL.md`](docs/INSTALL.md)** — biến môi trường, cấu hình MCP client, chạy từ source, publish, troubleshooting.
+**Full guide: [`docs/INSTALL.md`](docs/INSTALL.md)** — environment variables, MCP client configuration, running from source, publishing, and troubleshooting.
 
-Nhanh (sau khi package đã publish):
+Quick start (once the packages are published):
 
 ```jsonc
 // claude_desktop_config.json / mcp.json
@@ -25,14 +25,39 @@ Nhanh (sau khi package đã publish):
 }
 ```
 
-> chatops cần login SSO trước: `npx -y playwright install chromium` rồi `chatops-auth-login` (xem INSTALL.md §4).
+> chatops requires a one-time SSO login first: `npx -y playwright install chromium`, then `chatops-auth-login` (see INSTALL.md §4).
 
-## Phát triển
+## Architecture
+
+- **pnpm workspaces.** Two private, unpublished packages hold shared code:
+  - `@cuongph.dev/mcp-core` — MCP stdio server helper, config/env parsing, bootstrap, HTTP client, error types.
+  - `@cuongph.dev/mcp-auth-playwright` — SSO session/browser/CLI auth (used by chatops only).
+- Each group bundles its shared dependencies into `dist/` at build time via `tsup` (esbuild), so every published package is self-contained.
+- backlog depends only on `core` (no Playwright). chatops depends on `core` + `auth-playwright`. jira depends only on `core` (Basic Auth, no Playwright).
+
+## Development
 
 ```bash
 pnpm install
-pnpm -r build     # build 3 group ra dist/
-pnpm -r test      # chạy toàn bộ unit test
+pnpm -r build     # build all three groups into dist/
+pnpm -r test      # run all unit tests
+pnpm -r typecheck # tsc --noEmit across the workspace
 ```
 
-Chi tiết cấu hình từng group xem README trong `packages/<group>/`.
+Run a single group in dev (tsx, no build):
+
+```bash
+JIRA_BASE_URL=... JIRA_EMAIL=... JIRA_PASSWORD=... pnpm --filter @cuongph.dev/mcp-jira dev
+```
+
+## Publishing
+
+`core` and `auth-playwright` are `private` and never published. Only the three group packages are published. **Use `pnpm publish`** (not `npm publish`) so `workspace:*` specs are rewritten:
+
+```bash
+pnpm run release   # pnpm -r build && pnpm -r publish
+```
+
+See [`docs/INSTALL.md`](docs/INSTALL.md) §7 for details.
+
+Per-group configuration is documented in each `packages/<group>/README.md`.

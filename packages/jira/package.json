@@ -9,12 +9,13 @@
     "jira-mcp": "dist/server.js"
   },
   "files": ["dist", "README.md", "LICENSE"],
+  "publishConfig": { "access": "public" },
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/server.ts",
     "start": "node dist/server.js",
     "test": "vitest run",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "pnpm run build && pnpm run test"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.2",
