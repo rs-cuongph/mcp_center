@@ -7,7 +7,8 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r exec tsc --noEmit",
-    "release": "pnpm -r build && pnpm -r publish"
+    "release": "pnpm -r build && pnpm -r publish",
+    "deprecate-old": "bash scripts/deprecate-old.sh"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",
