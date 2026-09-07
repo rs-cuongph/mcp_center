@@ -19,11 +19,11 @@ export type ErrorCode =
 // Factory helpers — keeps call sites concise
 // ---------------------------------------------------------------------------
 
-export function authRequired(message = "No Jira session found. Run `jira-auth-login` to authenticate."): McpError {
+export function authRequired(message = "Set JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env)."): McpError {
   return new McpError("AUTH_REQUIRED", message);
 }
 
-export function sessionExpired(message = "Jira session has expired. Run `jira-auth-login` to reauthenticate."): McpError {
+export function sessionExpired(message = "Jira authentication failed. Set JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env)."): McpError {
   return new McpError("SESSION_EXPIRED", message);
 }
 

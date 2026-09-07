@@ -168,6 +168,6 @@ function errorContent(message: string) {
 function authErrorContent(code: string, message: string) {
   return {
     isError: true as const,
-    content: [{ type: "text" as const, text: `[${code}] ${message}\n\nRun: npm run jira-auth-login` }],
+    content: [{ type: "text" as const, text: `[${code}] ${message}\n\nSet JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env).` }],
   };
 }

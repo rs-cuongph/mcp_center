@@ -93,7 +93,7 @@ describe("handleGetIssue — session guard", () => {
     return {
       loadAndValidateSession: vi.fn().mockImplementation(async () => {
         const { McpError } = await import("../errors.js");
-        throw new McpError("AUTH_REQUIRED", "No session found. Run `jira-auth-login`.");
+        throw new McpError("AUTH_REQUIRED", "Set JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env).");
       }),
     };
   });
@@ -106,11 +106,10 @@ describe("handleGetIssue — session guard", () => {
     const { handleGetIssue } = await import("../tools/get-issue.js");
     const mockConfig = {
       JIRA_BASE_URL: "https://jira.example.com",
-      JIRA_SESSION_FILE: ".jira/session.json",
+      JIRA_EMAIL: "user@example.com",
+      JIRA_PASSWORD: "secret",
       JIRA_VALIDATE_PATH: "/rest/api/2/myself",
       LOG_LEVEL: "info",
-      PLAYWRIGHT_HEADLESS: false,
-      PLAYWRIGHT_BROWSER: "chromium",
     };
 
     const result = await handleGetIssue({ issueKey: "PROJ-1" }, mockConfig as never);
@@ -169,7 +168,7 @@ describe("handleGetIssueContext — session guard", () => {
     return {
       loadAndValidateSession: vi.fn().mockImplementation(async () => {
         const { McpError } = await import("../errors.js");
-        throw new McpError("AUTH_REQUIRED", "No session found. Run `jira-auth-login`.");
+        throw new McpError("AUTH_REQUIRED", "Set JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env).");
       }),
     };
   });
@@ -182,11 +181,10 @@ describe("handleGetIssueContext — session guard", () => {
     const { handleGetIssueContext } = await import("../tools/get-issue-context.js");
     const mockConfig = {
       JIRA_BASE_URL: "https://jira.example.com",
-      JIRA_SESSION_FILE: ".jira/session.json",
+      JIRA_EMAIL: "user@example.com",
+      JIRA_PASSWORD: "secret",
       JIRA_VALIDATE_PATH: "/rest/api/2/myself",
       LOG_LEVEL: "info",
-      PLAYWRIGHT_HEADLESS: false,
-      PLAYWRIGHT_BROWSER: "chromium",
     };
 
     const result = await handleGetIssueContext({ issueKey: "PROJ-1" }, mockConfig as never);

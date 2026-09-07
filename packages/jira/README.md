@@ -1,19 +1,17 @@
-# jira-run-mcp
+# @cuongph.dev/mcp-jira
 
-An internal MCP (Model Context Protocol) server for Jira 8, using SSO session bootstrap via Playwright and HTTP-first tool execution. Uses **stdio transport** — runs as a local subprocess managed by Claude Desktop, Cursor, or any MCP-compatible client.
+An internal MCP (Model Context Protocol) server for Jira 8 via HTTP Basic Auth and HTTP-first tool execution. Uses **stdio transport** — runs as a local subprocess managed by Claude Desktop, Cursor, or any MCP-compatible client.
 
 ## Stack
 
 - **TypeScript** — strict, ESM (NodeNext)
 - **@modelcontextprotocol/sdk** — MCP server + stdio transport
-- **Playwright** — interactive SSO login and session persistence
 - **Zod** — config and tool input validation
 - **Axios** — Jira REST API HTTP client
 
 ## Features
 
-- 🔐 SSO authentication via Playwright (headed browser)
-- 💾 Persistent local session (Playwright storage state / cookies)
+- 🔐 HTTP Basic Auth with credentials (`JIRA_EMAIL` and `JIRA_PASSWORD`)
 - 🔍 `jira_get_issue` — fetch a single issue by key
 - 🔎 `jira_search_issues` — execute JQL and return a compact issue list
 - 🔎 `jira_smart_search` — search by issue key, JQL, or natural-language filters
@@ -43,13 +41,13 @@ An internal MCP (Model Context Protocol) server for Jira 8, using SSO session bo
 - 📤 `jira_upload_attachment_content` — attach AI-generated content (text, CSV, JSON…) directly without a local file
 - 🗂️ `jira_get_projects` / `jira_get_components` / `jira_get_priorities` — discover common Jira metadata
 - 🔀 `jira_sync_gitlab_review_defects` — sync GitLab MR review comments into Jira Review Defects (`mrState` or single `mrIid`)
-- 🛡️ Clean `SESSION_EXPIRED` / `AUTH_REQUIRED` errors with reauthentication hints
-- 🖥️ Three CLI utilities for session management
+- 🛡️ Clean `SESSION_EXPIRED` / `AUTH_REQUIRED` errors with configuration hints
+- 🖥️ CLI binary `jira-mcp` managed via stdio transport
 
 ## Requirements
 
 - Node.js >= 20
-- Access to an internal Jira 8 instance (SSO)
+- Access to an internal Jira 8 instance with HTTP Basic Auth credentials
 
 ---
 
@@ -57,44 +55,25 @@ An internal MCP (Model Context Protocol) server for Jira 8, using SSO session bo
 
 > No cloning or building required. Install via npm or use `npx` directly.
 
-### Step 1 — Install Playwright Chromium
+### Step 1 — Configure Basic Auth Credentials
 
-Required once for the SSO browser login flow:
+Set `JIRA_BASE_URL`, `JIRA_EMAIL`, and `JIRA_PASSWORD` in your MCP client `env` configuration or in `.env` (see `.env.example`).
 
-```bash
-npx -y playwright install chromium
-```
+- `JIRA_BASE_URL` (required): Base URL of your Jira instance (e.g. `https://jira.yourcompany.com`)
+- `JIRA_EMAIL` (required): Jira account email/username
+- `JIRA_PASSWORD` (required): Jira password or personal access token
 
-### Step 2 — Authenticate with Jira
-
-Replace the URL with your actual Jira instance. Choose one method:
-
-**Option A — Interactive SSO (recommended for MFA / multi-step IdP)**
-
-```bash
-JIRA_BASE_URL=https://jira.yourcompany.com npx -y -p @cuongph.dev/mcp-jira jira-auth-login
-```
-
-A browser window opens. Complete SSO manually. The session is saved to `.jira/session.json` (or `~/.jira/jira-mcp/session.json` for global npx usage).
-
-**Option B — Basic Auth with credentials**
-
-Set both `JIRA_EMAIL` and `JIRA_PASSWORD` in your MCP client `env` block or in `.env` (see `.env.example`). The server validates HTTP Basic Auth first and uses it for Jira REST calls without opening a browser. If Jira rejects Basic Auth, it falls back to a headless Playwright login and then the stored session cookie. MFA or complex SSO still requires Option A.
-
-Verify the session is active:
-
-```bash
-JIRA_BASE_URL=https://jira.yourcompany.com npx -y -p @cuongph.dev/mcp-jira jira-auth-check
-```
-
-### Step 3 — Add to your MCP client
+### Step 2 — Add to your MCP client
 
 No separate server process needed — the MCP client spawns and manages the process automatically via stdio.
 
 #### Gemini CLI
 
 ```bash
-gemini mcp add jira npx -y @cuongph.dev/mcp-jira --env JIRA_BASE_URL=https://jira.yourcompany.com
+gemini mcp add jira npx -y @cuongph.dev/mcp-jira \
+  --env JIRA_BASE_URL=https://jira.yourcompany.com \
+  --env JIRA_EMAIL=you@yourcompany.com \
+  --env JIRA_PASSWORD=secret
 ```
 
 #### Cursor
@@ -109,6 +88,8 @@ Edit `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in your project:
       "args": ["-y", "@cuongph.dev/mcp-jira"],
       "env": {
         "JIRA_BASE_URL": "https://jira.yourcompany.com",
+        "JIRA_EMAIL": "you@yourcompany.com",
+        "JIRA_PASSWORD": "secret",
         "GITLAB_TOKEN": "glpat-xxxx",
         "GITLAB_PROJECTS_JSON": "{\"PROJ\":[{\"name\":\"app-frontend\",\"gitlabBaseUrl\":\"https://gitlab.example.com\",\"projectPath\":\"group/app-frontend\"}]}"
       }
@@ -129,6 +110,8 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
       "args": ["-y", "@cuongph.dev/mcp-jira"],
       "env": {
         "JIRA_BASE_URL": "https://jira.yourcompany.com",
+        "JIRA_EMAIL": "you@yourcompany.com",
+        "JIRA_PASSWORD": "secret",
         "GITLAB_TOKEN": "glpat-xxxx",
         "GITLAB_PROJECTS_JSON": "{\"PROJ\":[{\"name\":\"app-frontend\",\"gitlabBaseUrl\":\"https://gitlab.example.com\",\"projectPath\":\"group/app-frontend\"}]}"
       }
@@ -141,19 +124,11 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 > - source checkout: `<repo>/.env`
 > - npm/npx install: `~/.jira/jira-mcp/.env`
 >
-> Supported variables include `JIRA_BASE_URL` (required), optional `JIRA_EMAIL` / `JIRA_PASSWORD` for auto-login, `LOG_LEVEL`, and GitLab sync vars (`GITLAB_TOKEN`, `GITLAB_PROJECTS_JSON`, etc.). See `.env.example`.
+> Supported variables include `JIRA_BASE_URL` (required), `JIRA_EMAIL` (required), `JIRA_PASSWORD` (required), `LOG_LEVEL`, and GitLab sync vars (`GITLAB_TOKEN`, `GITLAB_PROJECTS_JSON`, etc.). See `.env.example`.
 >
 > For GitLab sync, put `GITLAB_TOKEN` and `GITLAB_PROJECTS_JSON` in the MCP `env` block or `.env`. MCP clients do not pass custom top-level blocks like `"config": { ... }` to the server process.
 
 Restart your MCP client after saving the config.
-
-### Session Management
-
-| Command | Description |
-|---|---|
-| `npx @cuongph.dev/mcp-jira jira-auth-login` | Launch SSO browser flow and save session |
-| `npx @cuongph.dev/mcp-jira jira-auth-check` | Validate whether the stored session is alive |
-| `npx @cuongph.dev/mcp-jira jira-auth-clear` | Remove the stored session file |
 
 ---
 
@@ -165,17 +140,11 @@ Restart your MCP client after saving the config.
 
 ```bash
 git clone <repo-url>
-cd jira-run-mcp
-npm install
+cd packages/jira
+pnpm install
 ```
 
-### 2. Install Playwright browsers
-
-```bash
-npx playwright install chromium
-```
-
-### 3. Configure environment
+### 2. Configure environment
 
 ```bash
 cp .env.example .env
@@ -185,33 +154,19 @@ Edit `.env`:
 
 ```env
 JIRA_BASE_URL=https://jira.yourcompany.com
+JIRA_EMAIL=you@yourcompany.com
+JIRA_PASSWORD=your-password-or-token
 ```
 
 See `.env.example` for all available options.
 
-### 4. Authenticate
-
-**Interactive SSO:**
+### 3. Build
 
 ```bash
-npm run jira-auth-login
+pnpm run build
 ```
 
-A browser window will open. Complete the SSO login manually. Session is saved to `.jira/session.json`.
-
-**Optional Basic Auth:** add both `JIRA_EMAIL` and `JIRA_PASSWORD` to `.env` (see `.env.example`). On the next MCP tool call, Basic Auth is validated first; Playwright auto-login is attempted only when Basic Auth is rejected.
-
-```bash
-npm run jira-auth-check
-```
-
-### 5. Build
-
-```bash
-npm run build
-```
-
-### 6. Add to MCP client (local build)
+### 4. Add to MCP client (local build)
 
 Use the local `dist/server.js` instead of the npm package.
 
@@ -225,18 +180,19 @@ Use the local `dist/server.js` instead of the npm package.
 ```json
 {
   "mcpServers": {
-    "jira-run-mcp": {
+    "jira": {
       "command": "node",
-      "args": ["/absolute/path/to/jira-run-mcp/dist/server.js"],
+      "args": ["/absolute/path/to/packages/jira/dist/server.js"],
       "env": {
+        "JIRA_BASE_URL": "https://jira.yourcompany.com",
+        "JIRA_EMAIL": "you@yourcompany.com",
+        "JIRA_PASSWORD": "secret",
         "LOG_LEVEL": "info"
       }
     }
   }
 }
 ```
-
-Add `JIRA_BASE_URL` and optional `JIRA_EMAIL` / `JIRA_PASSWORD` to the `env` block if you do not rely on `.env` alone.
 
 **Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 
@@ -245,22 +201,18 @@ Add `JIRA_BASE_URL` and optional `JIRA_EMAIL` / `JIRA_PASSWORD` to the `env` blo
   "mcpServers": {
     "jira": {
       "command": "node",
-      "args": ["/absolute/path/to/jira-run-mcp/dist/server.js"]
+      "args": ["/absolute/path/to/packages/jira/dist/server.js"],
+      "env": {
+        "JIRA_BASE_URL": "https://jira.yourcompany.com",
+        "JIRA_EMAIL": "you@yourcompany.com",
+        "JIRA_PASSWORD": "secret"
+      }
     }
   }
 }
 ```
 
 > The `.env` file in the project root is loaded automatically — you only need `env` in MCP config for overrides (e.g. `LOG_LEVEL`) or secrets you prefer not to store in `.env`.
-
-### CLI Utilities (dev)
-
-| Command | Description |
-|---|---|
-| `npm run jira-auth-login` | Launch SSO browser flow and save session |
-| `npm run jira-auth-check` | Validate whether the stored session is alive |
-| `npm run jira-auth-clear` | Remove the stored session file |
-
 ## MCP Tools
 
 ### `jira_get_issue`
@@ -791,9 +743,7 @@ src/
 ├── errors.ts              # Typed error classes & factories
 ├── types.ts               # Shared TypeScript types
 ├── auth/
-│   ├── session-store.ts   # Read/write/clear session.json
-│   ├── session-manager.ts # Session validation against Jira
-│   └── playwright-auth.ts # Headed SSO browser flow
+│   └── session-manager.ts # Basic Auth credential validation against Jira
 ├── jira/
 │   ├── endpoints.ts       # URL builders (REST API v2)
 │   ├── mappers.ts         # Raw payload → typed output shapes
@@ -806,7 +756,7 @@ src/
 │   ├── user-search.ts     # User search normalization
 │   ├── transition-resolution.ts # Transition name resolution
 │   ├── update-issue.ts    # Curated field update normalization
-│   └── http-client.ts     # Cookie-authenticated Jira HTTP client
+│   └── http-client.ts     # Basic-Auth-authenticated Jira HTTP client
 ├── tools/
 │   ├── add-attachment.ts  # jira_add_attachment handler
 │   ├── add-comment.ts     # jira_add_comment handler
@@ -837,37 +787,23 @@ src/
 │   ├── update-issue-fields.ts # jira_update_issue_fields handler
 │   ├── update-worklog.ts  # jira_update_worklog handler
 │   └── create-issue.ts    # jira_create_issue handler
-├── cli/
-│   ├── auth-login.ts      # jira-auth-login entry point
-│   ├── auth-check.ts      # jira-auth-check entry point
-│   └── auth-clear.ts      # jira-auth-clear entry point
 └── tests/                 # Unit tests (Vitest)
 ```
 
 ## Authentication Flow
 
 ```
-Operator
-  │
-  ▼
-npm run jira-auth-login
-  │
-  ├── Playwright opens browser (headed)
-  ├── Operator completes SSO manually
-  ├── storageState saved → .jira/session.json
-  └── Session validated immediately
-  
 MCP Tool Call
   │
-  ├── Load .jira/session.json
-  ├── Validate against /rest/api/2/myself
-  ├── Extract cookies → build HTTP request
-  └── Return normalized Jira data
-  
-Session Expired?
+  ├── Read JIRA_EMAIL & JIRA_PASSWORD from env
+  ├── Validate credentials against /rest/api/2/myself via Basic Auth
+  ├── Construct Authorization: Basic <base64> header
+  └── Execute REST request and return normalized Jira data
+
+Auth Failure?
   │
-  └── Returns [SESSION_EXPIRED] error
-      → "Run: npm run jira-auth-login"
+  └── Returns [AUTH_REQUIRED] or [SESSION_EXPIRED] error
+      → "Set JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env)."
 ```
 
 ## Development Commands
@@ -916,8 +852,8 @@ After the Inspector starts, open the URL it prints (usually `http://localhost:51
 
 | Code | Meaning |
 |---|---|
-| `AUTH_REQUIRED` | No session file found — run `jira-auth-login` |
-| `SESSION_EXPIRED` | Session exists but Jira rejected it — rerun `jira-auth-login` |
+| `AUTH_REQUIRED` | Missing credentials — set `JIRA_EMAIL` and `JIRA_PASSWORD` in `.env` (or MCP env) |
+| `SESSION_EXPIRED` | Basic Auth rejected by Jira — check `JIRA_EMAIL` and `JIRA_PASSWORD` in `.env` (or MCP env) |
 | `JIRA_HTTP_ERROR` | Unexpected HTTP error from Jira REST API |
 | `JIRA_RESPONSE_ERROR` | Jira returned an unexpected response shape |
 | `CONFIG_ERROR` | Invalid or missing environment variable |
@@ -925,6 +861,6 @@ After the Inspector starts, open the URL it prints (usually `http://localhost:51
 
 ## Security Notes
 
-- `.env` and `.jira/session.json` are **git-ignored** and must never be committed.
-- Session cookies give full Jira access as the authenticated user — treat them like passwords.
-- The session file is stored locally only; no remote storage is involved.
+- `.env` is **git-ignored** and must never be committed.
+- Credentials (`JIRA_EMAIL` and `JIRA_PASSWORD`) give full Jira access — treat them securely like passwords.
+- Basic Auth credentials are sent directly to the Jira REST API over HTTPS; credentials are not persisted to disk.

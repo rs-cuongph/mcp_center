@@ -231,7 +231,7 @@ function authErrorContent(code: string, message: string) {
     content: [
       {
         type: "text" as const,
-        text: `[${code}] ${message}\n\nRun: npm run jira-auth-login`,
+        text: `[${code}] ${message}\n\nSet JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env).`,
       },
     ],
   };

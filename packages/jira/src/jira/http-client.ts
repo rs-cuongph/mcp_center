@@ -901,7 +901,7 @@ export class JiraHttpClient {
   ): void {
     if (status === 401) {
       throw sessionExpired(
-        `Jira returned 401 — session likely expired. Run \`jira-auth-login\` to reauthenticate.`
+        "Jira returned 401 — authentication failed. Set JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env)."
       );
     }
     if (status === 403) {
@@ -910,12 +910,12 @@ export class JiraHttpClient {
     }
     if (status >= 300 && status < 400) {
       throw sessionExpired(
-        `Jira redirected (${status}) — session likely expired. Run \`jira-auth-login\` to reauthenticate.`
+        `Jira redirected (${status}) — authentication failed. Set JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env).`
       );
     }
     if (typeof body === "string" && isLoginPage(body)) {
       throw sessionExpired(
-        "Jira returned a login page — session has expired. Run `jira-auth-login` to reauthenticate."
+        "Jira returned a login page — authentication failed. Set JIRA_EMAIL and JIRA_PASSWORD in .env (or MCP env)."
       );
     }
   }

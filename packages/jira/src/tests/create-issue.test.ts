@@ -194,11 +194,10 @@ describe("createIssueFromFields", () => {
 describe("handleCreateIssue", () => {
   const mockConfig = {
     JIRA_BASE_URL: "https://jira.example.com",
-    JIRA_SESSION_FILE: ".jira/session.json",
+    JIRA_EMAIL: "user@example.com",
+    JIRA_PASSWORD: "secret",
     JIRA_VALIDATE_PATH: "/rest/api/2/myself",
     LOG_LEVEL: "info",
-    PLAYWRIGHT_HEADLESS: false,
-    PLAYWRIGHT_BROWSER: "chromium" as const,
   };
 
   beforeEach(() => {

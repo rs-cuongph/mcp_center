@@ -1,3 +1,4 @@
-# This directory stores the Playwright session state (cookies).
-# The actual session.json is git-ignored for security.
-# Run `npm run jira-auth-login` to create it.
+# Jira MCP local state directory
+
+This directory stores local runtime state such as GitLab cache and deduplication files.
+Authentication is handled via HTTP Basic Auth (`JIRA_EMAIL` and `JIRA_PASSWORD` in `.env`).
