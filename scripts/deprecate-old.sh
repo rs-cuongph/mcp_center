@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # Deprecate the old (pre-rename) npm packages, pointing users to the new names.
-# Usage: pnpm run deprecate-old -- <OTP>
-#   <OTP> = current npm 2FA one-time password (required; npm deprecate is a write op).
+#
+# Usage: pnpm run deprecate-old
+#
+# 2FA: this is a write op. With TOTP 2FA, npm prompts for a one-time code.
+# With WebAuthn (security key / macOS passkey / Touch ID), npm opens a browser
+# to approve each command — so run this in an interactive terminal, not CI.
+# For unattended runs, authenticate with a granular/automation access token
+# (NPM_TOKEN) instead; automation tokens bypass the 2FA prompt.
 set -euo pipefail
-
-OTP="${1:-}"
-if [ -z "$OTP" ]; then
-  echo "usage: pnpm run deprecate-old -- <OTP>   (OTP = npm 2FA one-time password)" >&2
-  exit 2
-fi
 
 deprecate() {
   local old="$1" new="$2"
   echo "→ deprecating $old -> $new"
-  npm deprecate "$old" "Moved to $new" --otp="$OTP"
+  npm deprecate "$old" "Moved to $new"
 }
 
 deprecate "@cuongph.dev/backlog-mcp" "@cuongph.dev/mcp-backlog"
