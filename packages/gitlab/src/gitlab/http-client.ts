@@ -14,6 +14,7 @@ import {
   mergeRequestsUrl,
   projectMergeRequestsUrl,
   projectMergeRequestUrl,
+  projectMergeRequestNotesUrl,
   projectMergeRequestDiscussionsUrl,
   projectMergeRequestChangesUrl,
   projectCommitsUrl,
@@ -275,6 +276,34 @@ export class GitlabHttpClient {
   }
 
   // ---------------------------------------------------------------------------
+  // gitlab_create_issue / gitlab_add_issue_note
+  // ---------------------------------------------------------------------------
+
+  async createIssue(
+    projectIdOrPath: string,
+    params: { title: string; description?: string; labels?: string[]; assigneeIds?: number[] }
+  ): Promise<GitlabIssue> {
+    const url = projectIssuesUrl(this.baseUrl, projectIdOrPath);
+    const body: Record<string, unknown> = { title: params.title };
+    if (params.description != null) body.description = params.description;
+    if (params.labels && params.labels.length > 0) body.labels = params.labels.join(",");
+    if (params.assigneeIds && params.assigneeIds.length > 0) body.assignee_ids = params.assigneeIds;
+
+    const res = await this.http.post(url, body);
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapIssue(res.data as GitlabRawIssue);
+  }
+
+  async addIssueNote(projectIdOrPath: string, issueIid: number, body: string): Promise<GitlabNote> {
+    const url = projectIssueNotesUrl(this.baseUrl, projectIdOrPath, issueIid);
+    const res = await this.http.post(url, { body });
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapNote(res.data as GitlabRawNote);
+  }
+
+  // ---------------------------------------------------------------------------
   // gitlab_list_merge_requests / gitlab_get_merge_request
   // ---------------------------------------------------------------------------
 
@@ -344,6 +373,15 @@ export class GitlabHttpClient {
       throw gitlabResponseError("Expected `changes` array from GET merge request changes", res.data);
     }
     return body.changes.map(mapMrChange);
+  }
+
+  /** Adds a note (comment) to a merge request; does not resolve a discussion thread. */
+  async addMergeRequestNote(projectIdOrPath: string, mrIid: number, body: string): Promise<GitlabNote> {
+    const url = projectMergeRequestNotesUrl(this.baseUrl, projectIdOrPath, mrIid);
+    const res = await this.http.post(url, { body });
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapNote(res.data as GitlabRawNote);
   }
 
   // ---------------------------------------------------------------------------

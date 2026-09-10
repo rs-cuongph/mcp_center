@@ -1,11 +1,12 @@
 # mcp_center
 
-Monorepo of three independent MCP servers. Each group is installed and configured separately.
+Monorepo of four independent MCP servers. Each group is installed and configured separately.
 
 | Group   | Package                    | Bin(s)                                            | Auth                      | Playwright |
 |---------|----------------------------|---------------------------------------------------|---------------------------|------------|
 | backlog | `@cuongph.dev/mcp-backlog` | `backlog-mcp`                                     | API Key                   | No         |
 | jira    | `@cuongph.dev/mcp-jira`    | `jira-mcp`                                        | HTTP Basic Auth           | No         |
+| gitlab  | `@cuongph.dev/mcp-gitlab`  | `gitlab-mcp`                                      | PAT (`PRIVATE-TOKEN`)     | No         |
 | chatops | `@cuongph.dev/mcp-chatops` | `chatops-mcp`, `chatops-auth-login/-check/-clear` | SSO session (login once)  | Yes        |
 
 ## Installation
@@ -20,6 +21,7 @@ Quick start (once the packages are published):
   "mcpServers": {
     "backlog": { "command": "npx", "args": ["-y", "@cuongph.dev/mcp-backlog"], "env": { "BACKLOG_BASE_URL": "...", "BACKLOG_API_KEY": "..." } },
     "jira":    { "command": "npx", "args": ["-y", "@cuongph.dev/mcp-jira"],    "env": { "JIRA_BASE_URL": "...", "JIRA_EMAIL": "...", "JIRA_PASSWORD": "..." } },
+    "gitlab":  { "command": "npx", "args": ["-y", "@cuongph.dev/mcp-gitlab"],  "env": { "GITLAB_URL": "...", "GITLAB_TOKEN": "..." } },
     "chatops": { "command": "npx", "args": ["-y", "@cuongph.dev/mcp-chatops"], "env": { "CHATOPS_URL": "..." } }
   }
 }
@@ -33,7 +35,7 @@ Quick start (once the packages are published):
   - `@cuongph.dev/mcp-core` — MCP stdio server helper, config/env parsing, bootstrap, HTTP client, error types.
   - `@cuongph.dev/mcp-auth-playwright` — SSO session/browser/CLI auth (used by chatops only).
 - Each group bundles its shared dependencies into `dist/` at build time via `tsup` (esbuild), so every published package is self-contained.
-- backlog depends only on `core` (no Playwright). chatops depends on `core` + `auth-playwright`. jira depends only on `core` (Basic Auth, no Playwright).
+- backlog depends only on `core` (no Playwright). chatops depends on `core` + `auth-playwright`. jira depends only on `core` (Basic Auth, no Playwright). gitlab depends only on `core` (PAT auth, GitLab REST API v4, no Playwright).
 
 ## Development
 

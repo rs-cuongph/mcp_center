@@ -85,6 +85,15 @@ export function projectMergeRequestUrl(
   return `${projectMergeRequestsUrl(baseUrl, projectIdOrPath)}/${mrIid}`;
 }
 
+/** URL for the notes (comments) of a project merge request. */
+export function projectMergeRequestNotesUrl(
+  baseUrl: string,
+  projectIdOrPath: string,
+  mrIid: number
+): string {
+  return `${projectMergeRequestUrl(baseUrl, projectIdOrPath, mrIid)}/notes`;
+}
+
 /** URL for the top-level discussions (review notes) of a merge request. */
 export function projectMergeRequestDiscussionsUrl(
   baseUrl: string,

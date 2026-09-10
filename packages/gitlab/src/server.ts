@@ -15,6 +15,24 @@ import { handleGetFile, getFileSchema } from "./tools/get-file.js";
 import { handleListBranches, listBranchesSchema } from "./tools/list-branches.js";
 import { handleListPipelines, listPipelinesSchema } from "./tools/list-pipelines.js";
 import { handleGetPipeline, getPipelineSchema } from "./tools/get-pipeline.js";
+import { handleCreateIssue, createIssueSchema } from "./tools/create-issue.js";
+import { handleAddIssueNote, addIssueNoteSchema } from "./tools/add-issue-note.js";
+import {
+  handleAddMergeRequestNote,
+  addMergeRequestNoteSchema,
+} from "./tools/add-merge-request-note.js";
+
+// ---------------------------------------------------------------------------
+// Tool confirmation instructions (appended to write tool descriptions)
+// ---------------------------------------------------------------------------
+
+/** Append to tools that create or modify data (issues, notes, etc.) */
+const WRITE_CONFIRMATION = `
+
+⚠️ WRITE ACTION: Before calling this tool, you MUST:
+1. Show the user exactly what will be written/changed (preview the content).
+2. Get explicit user approval (e.g. "yes", "go ahead", "confirm").
+3. Do NOT call this tool until the user confirms.`;
 
 // ---------------------------------------------------------------------------
 // Tool registration
@@ -135,6 +153,30 @@ are reported as metadata only (path, size) — never embedded, to avoid token co
     `Fetch a single CI/CD pipeline by numeric ID, including its jobs (stage, status, duration).`,
     getPipelineSchema.shape,
     async (input) => handleGetPipeline(input, config)
+  );
+
+  // ── Tool: gitlab_create_issue (write) ───────────────────────────────────────
+  server.tool(
+    "gitlab_create_issue",
+    `Create a new GitLab issue in a project.${WRITE_CONFIRMATION}`,
+    createIssueSchema.shape,
+    async (input) => handleCreateIssue(input, config)
+  );
+
+  // ── Tool: gitlab_add_issue_note (write) ─────────────────────────────────────
+  server.tool(
+    "gitlab_add_issue_note",
+    `Add a note (comment) to a GitLab issue.${WRITE_CONFIRMATION}`,
+    addIssueNoteSchema.shape,
+    async (input) => handleAddIssueNote(input, config)
+  );
+
+  // ── Tool: gitlab_add_merge_request_note (write) ─────────────────────────────
+  server.tool(
+    "gitlab_add_merge_request_note",
+    `Add a note (comment) to a GitLab merge request.${WRITE_CONFIRMATION}`,
+    addMergeRequestNoteSchema.shape,
+    async (input) => handleAddMergeRequestNote(input, config)
   );
 }
 
