@@ -2,7 +2,6 @@ import { createHttpClient } from "@cuongph.dev/mcp-core";
 import type { AxiosInstance, AxiosResponse } from "axios";
 import {
   encodeProjectId,
-  userUrl,
   versionUrl,
   projectsUrl,
   projectUrl,
@@ -114,8 +113,13 @@ export class GitlabHttpClient {
   // gitlab_get_current_user
   // ---------------------------------------------------------------------------
 
-  async getCurrentUser(): Promise<GitlabCurrentUser> {
-    const url = userUrl(this.baseUrl);
+  /**
+   * `validatePath` is the REST path used to validate the token, e.g.
+   * `/api/v4/user` (configurable via `GITLAB_VALIDATE_PATH` for self-hosted
+   * setups behind a reverse proxy that remaps the API path).
+   */
+  async getCurrentUser(validatePath: string): Promise<GitlabCurrentUser> {
+    const url = `${this.baseUrl}${validatePath}`;
     const res = await this.http.get(url);
     this.checkForAuthFailure(res.status, url);
     this.assertOk(res.status, url, res.data);
@@ -381,7 +385,7 @@ export class GitlabHttpClient {
     }
 
     const decoded = Buffer.from(raw.content, raw.encoding === "base64" ? "base64" : "utf-8");
-    const isBinary = decoded.subarray(0, 8000).includes(0);
+    const isBinary = !isTextContent(decoded);
     const tooLarge = raw.size > MAX_FILE_SIZE;
 
     return {
@@ -502,4 +506,31 @@ function extractPageMeta(res: AxiosResponse, params: PaginationParams): PageMeta
   const total = headers["x-total"] != null ? Number(headers["x-total"]) : undefined;
   const totalPages = headers["x-total-pages"] != null ? Number(headers["x-total-pages"]) : undefined;
   return { page, perPage, total, totalPages };
+}
+
+/** Fraction of control bytes (excluding tab/LF/CR) above which content is treated as binary. */
+const CONTROL_BYTE_RATIO_LIMIT = 0.003;
+
+/**
+ * Heuristic for whether decoded file bytes are safe to inline as text.
+ * All three must hold: no NUL byte, valid UTF-8, and a low ratio of
+ * non-printable control bytes. Anything else is reported as binary
+ * metadata-only — it is never inlined or base64-embedded in tool output.
+ */
+function isTextContent(buffer: Buffer): boolean {
+  if (buffer.length === 0) return true;
+  if (buffer.includes(0)) return false;
+
+  try {
+    new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+  } catch {
+    return false;
+  }
+
+  let controlBytes = 0;
+  for (const byte of buffer) {
+    if (byte === 0x09 || byte === 0x0a || byte === 0x0d) continue; // \t \n \r
+    if (byte < 0x09 || (byte >= 0x0e && byte <= 0x1f)) controlBytes++;
+  }
+  return controlBytes / buffer.length < CONTROL_BYTE_RATIO_LIMIT;
 }

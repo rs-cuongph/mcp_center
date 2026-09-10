@@ -17,14 +17,6 @@ export function encodeProjectId(idOrPath: string): string {
   return /^\d+$/.test(idOrPath) ? idOrPath : encodeURIComponent(idOrPath);
 }
 
-/**
- * URL for the authenticated-user endpoint.
- * @example userUrl("https://gitlab.co") → "https://gitlab.co/api/v4/user"
- */
-export function userUrl(baseUrl: string): string {
-  return `${baseUrl}${API_BASE}/user`;
-}
-
 /** URL for the instance version endpoint. */
 export function versionUrl(baseUrl: string): string {
   return `${baseUrl}${API_BASE}/version`;

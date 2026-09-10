@@ -3,8 +3,7 @@ import { z } from "zod";
 import { parseEnv } from "@cuongph.dev/mcp-core";
 
 // ---------------------------------------------------------------------------
-// Schema — only user-facing variables are read from the environment.
-// Internal/infra settings are hardcoded below.
+// Schema — user-facing variables read from the environment.
 // ---------------------------------------------------------------------------
 
 const schema = z.object({
@@ -19,24 +18,18 @@ const schema = z.object({
   LOG_LEVEL: z
     .enum(["debug", "info", "warn", "error"])
     .default("info"),
+
+  /** REST path used to validate the token in gitlab_get_current_user. Override via env for self-hosted setups behind a reverse proxy that remaps the API path. */
+  GITLAB_VALIDATE_PATH: z
+    .string()
+    .min(1, "GITLAB_VALIDATE_PATH must not be empty")
+    .default("/api/v4/user"),
 });
 
-// ---------------------------------------------------------------------------
-// Hardcoded defaults — not configurable via .env
-// ---------------------------------------------------------------------------
-
-const DEFAULTS = {
-  GITLAB_VALIDATE_PATH: "/api/v4/user",
-} as const;
-
-export type Config = z.infer<typeof schema> & typeof DEFAULTS;
+export type Config = z.infer<typeof schema>;
 
 // ---------------------------------------------------------------------------
 // Parse once at startup — callers import `config` directly
 // ---------------------------------------------------------------------------
 
-function loadConfig(): Config {
-  return { ...DEFAULTS, ...parseEnv(schema) };
-}
-
-export const config: Config = loadConfig();
+export const config: Config = parseEnv(schema);

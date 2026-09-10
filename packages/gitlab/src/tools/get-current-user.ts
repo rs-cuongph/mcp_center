@@ -30,7 +30,7 @@ export async function handleGetCurrentUser(
   const client = new GitlabHttpClient(cfg.GITLAB_URL, cfg.GITLAB_TOKEN);
 
   try {
-    const user = await client.getCurrentUser();
+    const user = await client.getCurrentUser(cfg.GITLAB_VALIDATE_PATH);
     const version = await client.tryGetVersion();
     return { content: [{ type: "text", text: formatCurrentUser(user, version, cfg.GITLAB_URL) }] };
   } catch (err: unknown) {
