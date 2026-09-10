@@ -54,12 +54,12 @@ JIRA_BASE_URL=... JIRA_EMAIL=... JIRA_PASSWORD=... pnpm --filter @cuongph.dev/mc
 
 ## Publishing
 
-`core` and `auth-playwright` are `private` and never published. Only the three group packages are published. **Use `pnpm publish`** (not `npm publish`) so `workspace:*` specs are rewritten:
+`core` and `auth-playwright` are `private` and never published. Only the four group packages are published. **Use `pnpm publish`** (not `npm publish`) so `workspace:*` specs are rewritten:
 
 ```bash
 pnpm run release   # pnpm -r build && pnpm -r publish
 ```
 
-See [`docs/INSTALL.md`](docs/INSTALL.md) §7 for details.
+See [`docs/INSTALL.md`](docs/INSTALL.md) §8 for details.
 
 Per-group configuration is documented in each `packages/<group>/README.md`.
