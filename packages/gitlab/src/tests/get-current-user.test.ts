@@ -78,4 +78,20 @@ describe("handleGetCurrentUser", () => {
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("AUTH_REQUIRED");
   });
+
+  it("passes the configured GITLAB_VALIDATE_PATH to the HTTP client", async () => {
+    vi.mocked(GitlabHttpClient.prototype.getCurrentUser).mockResolvedValue({
+      id: 7,
+      username: "alice",
+      name: "Alice Smith",
+      state: "active",
+      webUrl: "https://devops.runsystem.info/alice",
+      email: null,
+    });
+    vi.mocked(GitlabHttpClient.prototype.tryGetVersion).mockResolvedValue(null);
+
+    await handleGetCurrentUser({}, { ...MOCK_CFG, GITLAB_VALIDATE_PATH: "/custom/validate" });
+
+    expect(vi.mocked(GitlabHttpClient.prototype.getCurrentUser)).toHaveBeenCalledWith("/custom/validate");
+  });
 });
