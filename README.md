@@ -41,7 +41,7 @@ Quick start (once the packages are published):
 
 ```bash
 pnpm install
-pnpm -r build     # build all three groups into dist/
+pnpm -r build     # build all four groups into dist/
 pnpm -r test      # run all unit tests
 pnpm -r typecheck # tsc --noEmit across the workspace
 ```
