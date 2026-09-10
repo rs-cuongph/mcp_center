@@ -562,10 +562,10 @@ export class GitlabHttpClient {
     if (params.description != null) body.description = params.description;
     if (params.targetBranch != null) body.target_branch = params.targetBranch;
     if (params.stateEvent != null) body.state_event = params.stateEvent;
-    if (params.labels && params.labels.length > 0) body.labels = params.labels.join(",");
-    if (params.addLabels && params.addLabels.length > 0) body.add_labels = params.addLabels.join(",");
-    if (params.removeLabels && params.removeLabels.length > 0) body.remove_labels = params.removeLabels.join(",");
-    if (params.assigneeIds && params.assigneeIds.length > 0) body.assignee_ids = params.assigneeIds;
+    if (params.labels !== undefined) body.labels = params.labels.join(",");
+    if (params.addLabels !== undefined) body.add_labels = params.addLabels.join(",");
+    if (params.removeLabels !== undefined) body.remove_labels = params.removeLabels.join(",");
+    if (params.assigneeIds !== undefined) body.assignee_ids = params.assigneeIds;
 
     const res = await this.http.put(url, body);
     this.checkForAuthFailure(res.status, url);
@@ -624,10 +624,10 @@ export class GitlabHttpClient {
     if (params.title != null) body.title = params.title;
     if (params.description != null) body.description = params.description;
     if (params.stateEvent != null) body.state_event = params.stateEvent;
-    if (params.labels && params.labels.length > 0) body.labels = params.labels.join(",");
-    if (params.addLabels && params.addLabels.length > 0) body.add_labels = params.addLabels.join(",");
-    if (params.removeLabels && params.removeLabels.length > 0) body.remove_labels = params.removeLabels.join(",");
-    if (params.assigneeIds && params.assigneeIds.length > 0) body.assignee_ids = params.assigneeIds;
+    if (params.labels !== undefined) body.labels = params.labels.join(",");
+    if (params.addLabels !== undefined) body.add_labels = params.addLabels.join(",");
+    if (params.removeLabels !== undefined) body.remove_labels = params.removeLabels.join(",");
+    if (params.assigneeIds !== undefined) body.assignee_ids = params.assigneeIds;
 
     const res = await this.http.put(url, body);
     this.checkForAuthFailure(res.status, url);

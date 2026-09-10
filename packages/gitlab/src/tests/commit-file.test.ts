@@ -86,6 +86,21 @@ describe("handleCommitFile", () => {
     );
   });
 
+  it("creates an empty file when content is an empty string", async () => {
+    vi.mocked(GitlabHttpClient.prototype.commitFile).mockResolvedValue(MOCK_COMMIT);
+
+    const result = await handleCommitFile(
+      { projectId: "42", branch: "main", commitMessage: "Add placeholder", action: "create", filePath: "empty.txt", content: "" },
+      MOCK_CFG
+    );
+
+    expect(result.isError).toBeUndefined();
+    expect(GitlabHttpClient.prototype.commitFile).toHaveBeenCalledWith(
+      "42",
+      expect.objectContaining({ action: "create", content: "" })
+    );
+  });
+
   it("rejects a create action without content", async () => {
     const result = await handleCommitFile(
       { projectId: "42", branch: "main", commitMessage: "Add file", action: "create", filePath: "new.txt" },

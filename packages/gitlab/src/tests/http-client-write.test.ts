@@ -6,6 +6,7 @@ import type {
   GitlabRawMergeRequest,
   GitlabRawCommit,
   GitlabRawBranch,
+  GitlabRawCommitComment,
 } from "../types/gitlab-api.js";
 
 // ---------------------------------------------------------------------------
@@ -135,6 +136,17 @@ function rawBranch(overrides: Partial<GitlabRawBranch> = {}): GitlabRawBranch {
     protected: false,
     default: false,
     web_url: `${BASE_URL}/mygroup/myproject/-/tree/feature/x`,
+    ...overrides,
+  };
+}
+
+function rawCommitComment(overrides: Partial<GitlabRawCommitComment> = {}): GitlabRawCommitComment {
+  return {
+    note: "Nice change!",
+    path: null,
+    line: null,
+    line_type: null,
+    author: rawUser(),
     ...overrides,
   };
 }
@@ -326,6 +338,144 @@ describe("GitlabHttpClient write methods", () => {
       commit_message: "Remove file",
       actions: [{ action: "delete", file_path: "old.txt" }],
     });
+  });
+
+  it("commitFile POSTs an empty string content when creating an empty file", async () => {
+    mockPost.mockResolvedValue({ status: 201, data: rawCommit() });
+    const client = new GitlabHttpClient(BASE_URL, TOKEN);
+
+    const commit = await client.commitFile("mygroup/myproject", {
+      branch: "main",
+      commitMessage: "Add empty placeholder",
+      action: "create",
+      filePath: "empty.txt",
+      content: "",
+    });
+
+    expect(mockPost).toHaveBeenCalledWith(`${BASE_URL}/api/v4/projects/mygroup%2Fmyproject/repository/commits`, {
+      branch: "main",
+      commit_message: "Add empty placeholder",
+      actions: [{ action: "create", file_path: "empty.txt", content: "" }],
+    });
+    expect(commit.shortId).toBe("deadbee");
+  });
+
+  it("updateMergeRequest PUTs to /projects/:id/merge_requests/:iid with state_event and labels joined", async () => {
+    mockPut.mockResolvedValue({ status: 200, data: rawMergeRequest({ state: "closed" }) });
+    const client = new GitlabHttpClient(BASE_URL, TOKEN);
+
+    const mr = await client.updateMergeRequest("mygroup/myproject", 7, {
+      stateEvent: "close",
+      labels: ["bug", "urgent"],
+      assigneeIds: [1, 2],
+    });
+
+    expect(mockPut).toHaveBeenCalledWith(`${BASE_URL}/api/v4/projects/mygroup%2Fmyproject/merge_requests/7`, {
+      state_event: "close",
+      labels: "bug,urgent",
+      assignee_ids: [1, 2],
+    });
+    expect(mr.state).toBe("closed");
+  });
+
+  it("updateMergeRequest sends labels: \"\" and assignee_ids: [] to clear when explicitly provided empty", async () => {
+    mockPut.mockResolvedValue({ status: 200, data: rawMergeRequest() });
+    const client = new GitlabHttpClient(BASE_URL, TOKEN);
+
+    await client.updateMergeRequest("42", 7, { labels: [], assigneeIds: [] });
+
+    expect(mockPut).toHaveBeenCalledWith(`${BASE_URL}/api/v4/projects/42/merge_requests/7`, {
+      labels: "",
+      assignee_ids: [],
+    });
+  });
+
+  it("updateMergeRequest maps a 403 response to PERMISSION_DENIED", async () => {
+    mockPut.mockResolvedValue({ status: 403, data: {} });
+    const client = new GitlabHttpClient(BASE_URL, TOKEN);
+
+    await expect(client.updateMergeRequest("42", 7, { stateEvent: "close" })).rejects.toMatchObject({
+      code: "PERMISSION_DENIED",
+    });
+  });
+
+  it("updateIssue PUTs to /projects/:id/issues/:iid with title and labels joined", async () => {
+    mockPut.mockResolvedValue({ status: 200, data: rawIssue({ title: "Renamed bug" }) });
+    const client = new GitlabHttpClient(BASE_URL, TOKEN);
+
+    const issue = await client.updateIssue("mygroup/myproject", 42, {
+      title: "Renamed bug",
+      labels: ["bug", "urgent"],
+    });
+
+    expect(mockPut).toHaveBeenCalledWith(`${BASE_URL}/api/v4/projects/mygroup%2Fmyproject/issues/42`, {
+      title: "Renamed bug",
+      labels: "bug,urgent",
+    });
+    expect(issue.title).toBe("Renamed bug");
+  });
+
+  it("updateIssue sends labels: \"\" and assignee_ids: [] to clear when explicitly provided empty", async () => {
+    mockPut.mockResolvedValue({ status: 200, data: rawIssue() });
+    const client = new GitlabHttpClient(BASE_URL, TOKEN);
+
+    await client.updateIssue("42", 42, { labels: [], assigneeIds: [] });
+
+    expect(mockPut).toHaveBeenCalledWith(`${BASE_URL}/api/v4/projects/42/issues/42`, {
+      labels: "",
+      assignee_ids: [],
+    });
+  });
+
+  it("addCommitComment POSTs to /projects/:id/repository/commits/:sha/comments with the note", async () => {
+    mockPost.mockResolvedValue({ status: 201, data: rawCommitComment({ note: "Nice change!" }) });
+    const client = new GitlabHttpClient(BASE_URL, TOKEN);
+
+    const comment = await client.addCommitComment("mygroup/myproject", "abc123", { note: "Nice change!" });
+
+    expect(mockPost).toHaveBeenCalledWith(
+      `${BASE_URL}/api/v4/projects/mygroup%2Fmyproject/repository/commits/abc123/comments`,
+      { note: "Nice change!" }
+    );
+    expect(comment.note).toBe("Nice change!");
+  });
+
+  it("replyToDiscussion POSTs to the issues discussion notes URL when noteableType is issue", async () => {
+    mockPost.mockResolvedValue({ status: 201, data: rawNote({ body: "Reply" }) });
+    const client = new GitlabHttpClient(BASE_URL, TOKEN);
+
+    await client.replyToDiscussion("mygroup/myproject", "issue", 42, "disc1", "Reply");
+
+    expect(mockPost).toHaveBeenCalledWith(
+      `${BASE_URL}/api/v4/projects/mygroup%2Fmyproject/issues/42/discussions/disc1/notes`,
+      { body: "Reply" }
+    );
+  });
+
+  it("replyToDiscussion POSTs to the merge_requests discussion notes URL when noteableType is merge_request", async () => {
+    mockPost.mockResolvedValue({ status: 201, data: rawNote({ body: "Reply" }) });
+    const client = new GitlabHttpClient(BASE_URL, TOKEN);
+
+    await client.replyToDiscussion("mygroup/myproject", "merge_request", 7, "disc2", "Reply");
+
+    expect(mockPost).toHaveBeenCalledWith(
+      `${BASE_URL}/api/v4/projects/mygroup%2Fmyproject/merge_requests/7/discussions/disc2/notes`,
+      { body: "Reply" }
+    );
+  });
+
+  it("createBranch POSTs to /projects/:id/repository/branches with branch/ref query params", async () => {
+    mockPost.mockResolvedValue({ status: 201, data: rawBranch({ name: "feature/y" }) });
+    const client = new GitlabHttpClient(BASE_URL, TOKEN);
+
+    const branch = await client.createBranch("mygroup/myproject", "feature/y", "main");
+
+    expect(mockPost).toHaveBeenCalledWith(
+      `${BASE_URL}/api/v4/projects/mygroup%2Fmyproject/repository/branches`,
+      null,
+      { params: { branch: "feature/y", ref: "main" } }
+    );
+    expect(branch.name).toBe("feature/y");
   });
 
   it("deleteBranch DELETEs to /projects/:id/repository/branches/:branch with the branch name encoded", async () => {

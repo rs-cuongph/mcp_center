@@ -40,7 +40,7 @@ export async function handleCommitFile(
   }
 
   const { projectId, branch, commitMessage, action, filePath, content, encoding, startBranch } = parsed.data;
-  if (action !== "delete" && (content == null || content.length === 0)) {
+  if (action !== "delete" && content === undefined) {
     return errorContent("Invalid input: content is required when action is create or update");
   }
   const client = new GitlabHttpClient(cfg.GITLAB_URL, cfg.GITLAB_TOKEN);

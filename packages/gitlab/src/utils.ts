@@ -44,7 +44,8 @@ export function formatSize(bytes: number): string {
  */
 export function parseLabels(labels: string | string[] | undefined): string[] | undefined {
   if (labels == null) return undefined;
-  return Array.isArray(labels) ? labels : labels.split(",").map((l) => l.trim()).filter(Boolean);
+  const list = Array.isArray(labels) ? labels : labels.split(",");
+  return list.map((l) => l.trim()).filter(Boolean);
 }
 
 // ---------------------------------------------------------------------------
