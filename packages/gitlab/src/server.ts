@@ -21,6 +21,30 @@ import {
   handleAddMergeRequestNote,
   addMergeRequestNoteSchema,
 } from "./tools/add-merge-request-note.js";
+import {
+  handleCreateMergeRequest,
+  createMergeRequestSchema,
+} from "./tools/create-merge-request.js";
+import {
+  handleUpdateMergeRequest,
+  updateMergeRequestSchema,
+} from "./tools/update-merge-request.js";
+import {
+  handleMergeMergeRequest,
+  mergeMergeRequestSchema,
+} from "./tools/merge-merge-request.js";
+import { handleUpdateIssue, updateIssueSchema } from "./tools/update-issue.js";
+import {
+  handleAddCommitComment,
+  addCommitCommentSchema,
+} from "./tools/add-commit-comment.js";
+import {
+  handleReplyToDiscussion,
+  replyToDiscussionSchema,
+} from "./tools/reply-to-discussion.js";
+import { handleCreateBranch, createBranchSchema } from "./tools/create-branch.js";
+import { handleCommitFile, commitFileSchema } from "./tools/commit-file.js";
+import { handleDeleteBranch, deleteBranchSchema } from "./tools/delete-branch.js";
 
 // ---------------------------------------------------------------------------
 // Tool confirmation instructions (appended to write tool descriptions)
@@ -177,6 +201,78 @@ are reported as metadata only (path, size) — never embedded, to avoid token co
     `Add a note (comment) to a GitLab merge request.${WRITE_CONFIRMATION}`,
     addMergeRequestNoteSchema.shape,
     async (input) => handleAddMergeRequestNote(input, config)
+  );
+
+  // ── Tool: gitlab_create_merge_request (write) ───────────────────────────────
+  server.tool(
+    "gitlab_create_merge_request",
+    `Create a new GitLab merge request in a project.${WRITE_CONFIRMATION}`,
+    createMergeRequestSchema.shape,
+    async (input) => handleCreateMergeRequest(input, config)
+  );
+
+  // ── Tool: gitlab_update_merge_request (write) ───────────────────────────────
+  server.tool(
+    "gitlab_update_merge_request",
+    `Update a GitLab merge request's title, description, target branch, labels, assignees, or open/closed state.${WRITE_CONFIRMATION}`,
+    updateMergeRequestSchema.shape,
+    async (input) => handleUpdateMergeRequest(input, config)
+  );
+
+  // ── Tool: gitlab_merge_merge_request (write) ────────────────────────────────
+  server.tool(
+    "gitlab_merge_merge_request",
+    `Merge a GitLab merge request.${WRITE_CONFIRMATION}`,
+    mergeMergeRequestSchema.shape,
+    async (input) => handleMergeMergeRequest(input, config)
+  );
+
+  // ── Tool: gitlab_update_issue (write) ───────────────────────────────────────
+  server.tool(
+    "gitlab_update_issue",
+    `Update a GitLab issue's title, description, labels, assignees, or open/closed state.${WRITE_CONFIRMATION}`,
+    updateIssueSchema.shape,
+    async (input) => handleUpdateIssue(input, config)
+  );
+
+  // ── Tool: gitlab_add_commit_comment (write) ─────────────────────────────────
+  server.tool(
+    "gitlab_add_commit_comment",
+    `Add a comment to a GitLab commit, optionally anchored to a specific file/line.${WRITE_CONFIRMATION}`,
+    addCommitCommentSchema.shape,
+    async (input) => handleAddCommitComment(input, config)
+  );
+
+  // ── Tool: gitlab_reply_to_discussion (write) ────────────────────────────────
+  server.tool(
+    "gitlab_reply_to_discussion",
+    `Reply to an existing discussion thread on a GitLab issue or merge request.${WRITE_CONFIRMATION}`,
+    replyToDiscussionSchema.shape,
+    async (input) => handleReplyToDiscussion(input, config)
+  );
+
+  // ── Tool: gitlab_create_branch (write) ──────────────────────────────────────
+  server.tool(
+    "gitlab_create_branch",
+    `Create a new branch in a GitLab project's repository.${WRITE_CONFIRMATION}`,
+    createBranchSchema.shape,
+    async (input) => handleCreateBranch(input, config)
+  );
+
+  // ── Tool: gitlab_commit_file (write) ────────────────────────────────────────
+  server.tool(
+    "gitlab_commit_file",
+    `Create, update, or delete a single repository file via a direct commit to a branch.${WRITE_CONFIRMATION}`,
+    commitFileSchema.shape,
+    async (input) => handleCommitFile(input, config)
+  );
+
+  // ── Tool: gitlab_delete_branch (write) ──────────────────────────────────────
+  server.tool(
+    "gitlab_delete_branch",
+    `Delete a branch from a GitLab project's repository.${WRITE_CONFIRMATION}`,
+    deleteBranchSchema.shape,
+    async (input) => handleDeleteBranch(input, config)
   );
 }
 

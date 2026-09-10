@@ -1,6 +1,6 @@
 {
   "name": "@cuongph.dev/mcp-gitlab",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for self-hosted GitLab — projects, issues, merge requests, repository, pipelines via REST API v4",
   "license": "MIT",
   "type": "module",

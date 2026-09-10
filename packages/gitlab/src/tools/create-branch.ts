@@ -1,49 +1,42 @@
 import { z } from "zod";
 import { GitlabHttpClient } from "../gitlab/http-client.js";
 import { isMcpError } from "../errors.js";
-import { navigationHint, parseLabels } from "../utils.js";
+import { navigationHint } from "../utils.js";
 import type { Config } from "../config.js";
-import type { GitlabIssue } from "../types.js";
+import type { GitlabBranch } from "../types.js";
 
 // ---------------------------------------------------------------------------
 // Input schema
 // ---------------------------------------------------------------------------
 
-export const createIssueSchema = z.object({
+export const createBranchSchema = z.object({
   projectId: z.string().min(1, "projectId is required").describe("Numeric project ID or path"),
-  title: z.string().min(1, "title is required").describe("Issue title"),
-  description: z.string().optional().describe("Issue description (Markdown supported by GitLab)"),
-  labels: z
-    .union([z.string(), z.array(z.string())])
-    .optional()
-    .describe('Labels to apply — array of label names or a comma-separated string, e.g. "bug,urgent"'),
-  assigneeIds: z.array(z.number().int().positive()).optional().describe("User IDs to assign the issue to"),
+  branch: z.string().min(1, "branch is required").describe("Name of the new branch"),
+  ref: z.string().min(1, "ref is required").describe("Branch name, tag, or commit SHA to create the branch from"),
 });
 
-export type CreateIssueInput = z.infer<typeof createIssueSchema>;
+export type CreateBranchInput = z.infer<typeof createBranchSchema>;
 
 // ---------------------------------------------------------------------------
 // Handler
 // ---------------------------------------------------------------------------
 
-export async function handleCreateIssue(
+export async function handleCreateBranch(
   rawInput: unknown,
   cfg: Config
 ): Promise<{ content: Array<{ type: "text"; text: string }>; isError?: boolean }> {
-  const parsed = createIssueSchema.safeParse(rawInput);
+  const parsed = createBranchSchema.safeParse(rawInput);
   if (!parsed.success) {
     const msg = parsed.error.errors.map((e) => e.message).join("; ");
     return errorContent(`Invalid input: ${msg}`);
   }
 
-  const { projectId, title, description, labels, assigneeIds } = parsed.data;
-  const labelList = parseLabels(labels);
-
+  const { projectId, branch, ref } = parsed.data;
   const client = new GitlabHttpClient(cfg.GITLAB_URL, cfg.GITLAB_TOKEN);
 
   try {
-    const issue = await client.createIssue(projectId, { title, description, labels: labelList, assigneeIds });
-    return { content: [{ type: "text", text: formatCreatedIssue(issue) }] };
+    const created = await client.createBranch(projectId, branch, ref);
+    return { content: [{ type: "text", text: formatCreatedBranch(projectId, created) }] };
   } catch (err: unknown) {
     if (isMcpError(err)) return errorContent(`[${err.code}] ${err.message}`);
     if (err instanceof Error) return errorContent(err.message);
@@ -55,20 +48,18 @@ export async function handleCreateIssue(
 // Formatting
 // ---------------------------------------------------------------------------
 
-function formatCreatedIssue(issue: GitlabIssue): string {
+function formatCreatedBranch(projectId: string, branch: GitlabBranch): string {
   return (
     [
-      `✅ **Issue created**`,
+      `✅ **Branch created**`,
       "",
       `| Field | Value |`,
       `|---|---|`,
-      `| **Issue** | #${issue.iid} ${issue.title} |`,
-      `| **State** | ${issue.state} |`,
-      `| **URL** | ${issue.webUrl} |`,
+      `| **Branch** | ${branch.name} |`,
+      `| **From commit** | ${branch.commitShortId} — ${branch.commitTitle} |`,
+      `| **URL** | ${branch.webUrl} |`,
     ].join("\n") +
-    navigationHint([
-      `\`gitlab_get_issue(projectId: "${issue.projectId}", iid: ${issue.iid})\` — view the new issue`,
-    ])
+    navigationHint([`\`gitlab_list_branches(projectId: "${projectId}", search: "${branch.name}")\` — confirm it landed`])
   );
 }
 

@@ -188,3 +188,11 @@ export interface GitlabBlobSearchResult {
   startLine: number;
   snippet: string;
 }
+
+export interface GitlabCommitComment {
+  note: string;
+  path: string | null;
+  line: number | null;
+  lineType: string | null;
+  author: string;
+}

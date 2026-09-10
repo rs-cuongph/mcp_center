@@ -11,6 +11,7 @@ import type {
   GitlabRawJob,
   GitlabRawMrChange,
   GitlabRawBlobSearchResult,
+  GitlabRawCommitComment,
 } from "../types/gitlab-api.js";
 import type {
   GitlabUser,
@@ -28,6 +29,7 @@ import type {
   GitlabJob,
   GitlabMrChangeSummary,
   GitlabBlobSearchResult,
+  GitlabCommitComment,
 } from "../types.js";
 
 // ---------------------------------------------------------------------------
@@ -248,5 +250,15 @@ export function mapBlobSearchResult(raw: GitlabRawBlobSearchResult): GitlabBlobS
     ref: raw.ref,
     startLine: raw.startline,
     snippet: raw.data,
+  };
+}
+
+export function mapCommitComment(raw: GitlabRawCommitComment): GitlabCommitComment {
+  return {
+    note: raw.note,
+    path: raw.path ?? null,
+    line: raw.line ?? null,
+    lineType: raw.line_type ?? null,
+    author: raw.author.username,
   };
 }

@@ -153,3 +153,37 @@ export function projectPipelineJobsUrl(
 ): string {
   return `${projectPipelineUrl(baseUrl, projectIdOrPath, pipelineId)}/jobs`;
 }
+
+/** URL to merge a single project merge request. */
+export function projectMergeRequestMergeUrl(
+  baseUrl: string,
+  projectIdOrPath: string,
+  mrIid: number
+): string {
+  return `${projectMergeRequestUrl(baseUrl, projectIdOrPath, mrIid)}/merge`;
+}
+
+/** URL for the comments on a single repository commit. */
+export function projectCommitCommentsUrl(
+  baseUrl: string,
+  projectIdOrPath: string,
+  sha: string
+): string {
+  return `${projectCommitsUrl(baseUrl, projectIdOrPath)}/${encodeURIComponent(sha)}/comments`;
+}
+
+/** URL for the notes of a discussion thread on an issue or merge request. */
+export function projectDiscussionNotesUrl(
+  baseUrl: string,
+  projectIdOrPath: string,
+  noteableResource: "issues" | "merge_requests",
+  iid: number,
+  discussionId: string
+): string {
+  return `${projectUrl(baseUrl, projectIdOrPath)}/${noteableResource}/${iid}/discussions/${encodeURIComponent(discussionId)}/notes`;
+}
+
+/** URL for a single branch (used for deletion). */
+export function projectBranchUrl(baseUrl: string, projectIdOrPath: string, branch: string): string {
+  return `${projectBranchesUrl(baseUrl, projectIdOrPath)}/${encodeURIComponent(branch)}`;
+}

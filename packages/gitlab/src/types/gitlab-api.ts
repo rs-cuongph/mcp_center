@@ -208,3 +208,12 @@ export interface GitlabRawBlobSearchResult {
   startline: number;
   project_id: number;
 }
+
+/** POST /projects/:id/repository/commits/:sha/comments — a comment on a commit */
+export interface GitlabRawCommitComment {
+  note: string;
+  path: string | null;
+  line: number | null;
+  line_type: string | null;
+  author: GitlabRawUser;
+}

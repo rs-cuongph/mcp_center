@@ -17,9 +17,13 @@ import {
   projectMergeRequestNotesUrl,
   projectMergeRequestDiscussionsUrl,
   projectMergeRequestChangesUrl,
+  projectMergeRequestMergeUrl,
   projectCommitsUrl,
+  projectCommitCommentsUrl,
+  projectDiscussionNotesUrl,
   projectFileUrl,
   projectBranchesUrl,
+  projectBranchUrl,
   projectPipelinesUrl,
   projectPipelineUrl,
   projectPipelineJobsUrl,
@@ -40,6 +44,7 @@ import {
   mapJob,
   mapMrChange,
   mapBlobSearchResult,
+  mapCommitComment,
 } from "./mappers.js";
 import { authRequired, permissionDenied, gitlabHttpError, gitlabResponseError } from "../errors.js";
 import type {
@@ -57,6 +62,7 @@ import type {
   GitlabRawMrChange,
   GitlabRawFile,
   GitlabRawBlobSearchResult,
+  GitlabRawCommitComment,
 } from "../types/gitlab-api.js";
 import type {
   GitlabCurrentUser,
@@ -74,6 +80,7 @@ import type {
   GitlabMrChangeSummary,
   GitlabFile,
   GitlabBlobSearchResult,
+  GitlabCommitComment,
 } from "../types.js";
 import type { PageMeta } from "../utils.js";
 
@@ -496,6 +503,223 @@ export class GitlabHttpClient {
       throw gitlabResponseError("Expected array response from GET pipeline jobs", res.data);
     }
     return (res.data as GitlabRawJob[]).map(mapJob);
+  }
+
+  // ---------------------------------------------------------------------------
+  // gitlab_create_merge_request / gitlab_update_merge_request / gitlab_merge_merge_request
+  // ---------------------------------------------------------------------------
+
+  async createMergeRequest(
+    projectIdOrPath: string,
+    params: {
+      sourceBranch: string;
+      targetBranch: string;
+      title: string;
+      description?: string;
+      assigneeIds?: number[];
+      reviewerIds?: number[];
+      labels?: string[];
+      removeSourceBranch?: boolean;
+      squash?: boolean;
+    }
+  ): Promise<GitlabMergeRequest> {
+    const url = projectMergeRequestsUrl(this.baseUrl, projectIdOrPath);
+    const body: Record<string, unknown> = {
+      source_branch: params.sourceBranch,
+      target_branch: params.targetBranch,
+      title: params.title,
+    };
+    if (params.description != null) body.description = params.description;
+    if (params.assigneeIds && params.assigneeIds.length > 0) body.assignee_ids = params.assigneeIds;
+    if (params.reviewerIds && params.reviewerIds.length > 0) body.reviewer_ids = params.reviewerIds;
+    if (params.labels && params.labels.length > 0) body.labels = params.labels.join(",");
+    if (params.removeSourceBranch != null) body.remove_source_branch = params.removeSourceBranch;
+    if (params.squash != null) body.squash = params.squash;
+
+    const res = await this.http.post(url, body);
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapMergeRequest(res.data as GitlabRawMergeRequest);
+  }
+
+  async updateMergeRequest(
+    projectIdOrPath: string,
+    mrIid: number,
+    params: {
+      title?: string;
+      description?: string;
+      targetBranch?: string;
+      stateEvent?: "close" | "reopen";
+      labels?: string[];
+      addLabels?: string[];
+      removeLabels?: string[];
+      assigneeIds?: number[];
+    }
+  ): Promise<GitlabMergeRequest> {
+    const url = projectMergeRequestUrl(this.baseUrl, projectIdOrPath, mrIid);
+    const body: Record<string, unknown> = {};
+    if (params.title != null) body.title = params.title;
+    if (params.description != null) body.description = params.description;
+    if (params.targetBranch != null) body.target_branch = params.targetBranch;
+    if (params.stateEvent != null) body.state_event = params.stateEvent;
+    if (params.labels && params.labels.length > 0) body.labels = params.labels.join(",");
+    if (params.addLabels && params.addLabels.length > 0) body.add_labels = params.addLabels.join(",");
+    if (params.removeLabels && params.removeLabels.length > 0) body.remove_labels = params.removeLabels.join(",");
+    if (params.assigneeIds && params.assigneeIds.length > 0) body.assignee_ids = params.assigneeIds;
+
+    const res = await this.http.put(url, body);
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapMergeRequest(res.data as GitlabRawMergeRequest);
+  }
+
+  async mergeMergeRequest(
+    projectIdOrPath: string,
+    mrIid: number,
+    params: {
+      mergeCommitMessage?: string;
+      squash?: boolean;
+      shouldRemoveSourceBranch?: boolean;
+      mergeWhenPipelineSucceeds?: boolean;
+      sha?: string;
+    }
+  ): Promise<GitlabMergeRequest> {
+    const url = projectMergeRequestMergeUrl(this.baseUrl, projectIdOrPath, mrIid);
+    const body: Record<string, unknown> = {};
+    if (params.mergeCommitMessage != null) body.merge_commit_message = params.mergeCommitMessage;
+    if (params.squash != null) body.squash = params.squash;
+    if (params.shouldRemoveSourceBranch != null) {
+      body.should_remove_source_branch = params.shouldRemoveSourceBranch;
+    }
+    if (params.mergeWhenPipelineSucceeds != null) {
+      body.merge_when_pipeline_succeeds = params.mergeWhenPipelineSucceeds;
+    }
+    if (params.sha != null) body.sha = params.sha;
+
+    const res = await this.http.put(url, body);
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapMergeRequest(res.data as GitlabRawMergeRequest);
+  }
+
+  // ---------------------------------------------------------------------------
+  // gitlab_update_issue
+  // ---------------------------------------------------------------------------
+
+  async updateIssue(
+    projectIdOrPath: string,
+    issueIid: number,
+    params: {
+      title?: string;
+      description?: string;
+      stateEvent?: "close" | "reopen";
+      labels?: string[];
+      addLabels?: string[];
+      removeLabels?: string[];
+      assigneeIds?: number[];
+    }
+  ): Promise<GitlabIssue> {
+    const url = projectIssueUrl(this.baseUrl, projectIdOrPath, issueIid);
+    const body: Record<string, unknown> = {};
+    if (params.title != null) body.title = params.title;
+    if (params.description != null) body.description = params.description;
+    if (params.stateEvent != null) body.state_event = params.stateEvent;
+    if (params.labels && params.labels.length > 0) body.labels = params.labels.join(",");
+    if (params.addLabels && params.addLabels.length > 0) body.add_labels = params.addLabels.join(",");
+    if (params.removeLabels && params.removeLabels.length > 0) body.remove_labels = params.removeLabels.join(",");
+    if (params.assigneeIds && params.assigneeIds.length > 0) body.assignee_ids = params.assigneeIds;
+
+    const res = await this.http.put(url, body);
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapIssue(res.data as GitlabRawIssue);
+  }
+
+  // ---------------------------------------------------------------------------
+  // gitlab_add_commit_comment / gitlab_reply_to_discussion
+  // ---------------------------------------------------------------------------
+
+  async addCommitComment(
+    projectIdOrPath: string,
+    sha: string,
+    params: { note: string; path?: string; line?: number; lineType?: "new" | "old" }
+  ): Promise<GitlabCommitComment> {
+    const url = projectCommitCommentsUrl(this.baseUrl, projectIdOrPath, sha);
+    const body: Record<string, unknown> = { note: params.note };
+    if (params.path != null) body.path = params.path;
+    if (params.line != null) body.line = params.line;
+    if (params.lineType != null) body.line_type = params.lineType;
+
+    const res = await this.http.post(url, body);
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapCommitComment(res.data as GitlabRawCommitComment);
+  }
+
+  /** Replies to an existing discussion thread on an issue or merge request. */
+  async replyToDiscussion(
+    projectIdOrPath: string,
+    noteableType: "issue" | "merge_request",
+    iid: number,
+    discussionId: string,
+    body: string
+  ): Promise<GitlabNote> {
+    const resource = noteableType === "issue" ? "issues" : "merge_requests";
+    const url = projectDiscussionNotesUrl(this.baseUrl, projectIdOrPath, resource, iid, discussionId);
+    const res = await this.http.post(url, { body });
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapNote(res.data as GitlabRawNote);
+  }
+
+  // ---------------------------------------------------------------------------
+  // gitlab_create_branch / gitlab_commit_file / gitlab_delete_branch
+  // ---------------------------------------------------------------------------
+
+  async createBranch(projectIdOrPath: string, branch: string, ref: string): Promise<GitlabBranch> {
+    const url = projectBranchesUrl(this.baseUrl, projectIdOrPath);
+    const res = await this.http.post(url, null, { params: { branch, ref } });
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapBranch(res.data as GitlabRawBranch);
+  }
+
+  /** Commits a single file change (create/update/delete) directly to a branch. */
+  async commitFile(
+    projectIdOrPath: string,
+    params: {
+      branch: string;
+      commitMessage: string;
+      action: "create" | "update" | "delete";
+      filePath: string;
+      content?: string;
+      encoding?: "text" | "base64";
+      startBranch?: string;
+    }
+  ): Promise<GitlabCommit> {
+    const url = projectCommitsUrl(this.baseUrl, projectIdOrPath);
+    const action: Record<string, unknown> = { action: params.action, file_path: params.filePath };
+    if (params.action !== "delete" && params.content != null) action.content = params.content;
+    if (params.encoding != null) action.encoding = params.encoding;
+
+    const body: Record<string, unknown> = {
+      branch: params.branch,
+      commit_message: params.commitMessage,
+      actions: [action],
+    };
+    if (params.startBranch != null) body.start_branch = params.startBranch;
+
+    const res = await this.http.post(url, body);
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
+    return mapCommit(res.data as GitlabRawCommit);
+  }
+
+  async deleteBranch(projectIdOrPath: string, branch: string): Promise<void> {
+    const url = projectBranchUrl(this.baseUrl, projectIdOrPath, branch);
+    const res = await this.http.delete(url);
+    this.checkForAuthFailure(res.status, url);
+    this.assertOk(res.status, url, res.data);
   }
 
   // ---------------------------------------------------------------------------

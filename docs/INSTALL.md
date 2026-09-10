@@ -103,11 +103,11 @@ Authentication is a **GitLab Personal Access Token (PAT)** sent via the `PRIVATE
 | Variable               | Required | Description                                                                                   |
 |-------------------------|----------|-----------------------------------------------------------------------------------------------|
 | `GITLAB_URL`            | ✅       | Self-hosted GitLab instance URL, no trailing slash. e.g. `https://gitlab.yourcompany.com`     |
-| `GITLAB_TOKEN`          | ✅       | Personal Access Token. Scope `read_api` is enough for the read tools; scope `api` is required to use the write tools (`gitlab_create_issue`, `gitlab_add_issue_note`, `gitlab_add_merge_request_note`). |
+| `GITLAB_TOKEN`          | ✅       | Personal Access Token. Scope `read_api` is enough for the read tools; scope `api` is required to use the write tools (`gitlab_create_issue`, `gitlab_add_issue_note`, `gitlab_add_merge_request_note`, `gitlab_create_merge_request`, `gitlab_update_merge_request`, `gitlab_merge_merge_request`, `gitlab_update_issue`, `gitlab_add_commit_comment`, `gitlab_reply_to_discussion`, `gitlab_create_branch`, `gitlab_commit_file`, `gitlab_delete_branch`). |
 | `GITLAB_VALIDATE_PATH`  | ⬜       | REST path used to validate the token in `gitlab_get_current_user`. Default `/api/v4/user`. Override for self-hosted setups behind a reverse proxy that remaps the API path. |
 | `LOG_LEVEL`             | ⬜       | `debug` \| `info` \| `warn` \| `error` (default `info`)                                       |
 
-> Bin: `gitlab-mcp`. Read tools (list/get projects, issues, merge requests, commits, files, branches, pipelines) work with a `read_api`-scoped token. The three write tools additionally require an `api`-scoped token — GitLab rejects write requests from a `read_api`-only token with `403 PERMISSION_DENIED`.
+> Bin: `gitlab-mcp`. Read tools (list/get projects, issues, merge requests, commits, files, branches, pipelines) work with a `read_api`-scoped token. The 12 write tools additionally require an `api`-scoped token — GitLab rejects write requests from a `read_api`-only token with `403 PERMISSION_DENIED`.
 
 ### MCP client configuration
 
@@ -287,7 +287,7 @@ npm deprecate @cuongph.dev/chatops-mcp "Moved to @cuongph.dev/mcp-chatops"
 | jira: `AUTH_REQUIRED` on startup | Missing `JIRA_EMAIL`/`JIRA_PASSWORD` in `env`. Both are required. |
 | jira: `SESSION_EXPIRED` / auth failed | Wrong email/password, or Jira does not allow Basic Auth on REST. Check `JIRA_VALIDATE_PATH`. |
 | gitlab: `AUTH_REQUIRED` on startup / tool calls | Missing or invalid `GITLAB_TOKEN`. Check `GITLAB_VALIDATE_PATH` for self-hosted proxies that remap `/api/v4`. |
-| gitlab: `PERMISSION_DENIED` on write tools | `GITLAB_TOKEN` scope is `read_api` only. Reissue the token with `api` scope for `gitlab_create_issue`/`gitlab_add_issue_note`/`gitlab_add_merge_request_note`. |
+| gitlab: `PERMISSION_DENIED` on write tools | `GITLAB_TOKEN` scope is `read_api` only. Reissue the token with `api` scope — required by all 12 write tools (`gitlab_create_issue`, `gitlab_add_issue_note`, `gitlab_add_merge_request_note`, `gitlab_create_merge_request`, `gitlab_update_merge_request`, `gitlab_merge_merge_request`, `gitlab_update_issue`, `gitlab_add_commit_comment`, `gitlab_reply_to_discussion`, `gitlab_create_branch`, `gitlab_commit_file`, `gitlab_delete_branch`). |
 | chatops: `chatops-auth-check` reports expired | Run `chatops-auth-login` again to create a fresh session. |
 | chatops: login does not open a browser | Chromium not installed → `npx -y playwright install chromium`. |
 | Server runs but client shows no tools | Wrong command/path in config; restart the MCP client; check the process's stderr log. |

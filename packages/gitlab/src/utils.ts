@@ -38,6 +38,15 @@ export function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/**
+ * Normalizes a labels input (array of names or a comma-separated string) into
+ * a trimmed array. Returns undefined when no labels were provided.
+ */
+export function parseLabels(labels: string | string[] | undefined): string[] | undefined {
+  if (labels == null) return undefined;
+  return Array.isArray(labels) ? labels : labels.split(",").map((l) => l.trim()).filter(Boolean);
+}
+
 // ---------------------------------------------------------------------------
 // Navigation hints
 // ---------------------------------------------------------------------------
