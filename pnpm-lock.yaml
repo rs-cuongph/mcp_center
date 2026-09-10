@@ -101,6 +101,25 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
 
+  packages/gitlab:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.10.2
+        version: 1.30.0(zod@3.25.76)
+      axios:
+        specifier: ^1.7.7
+        version: 1.20.0
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.6.1
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      '@cuongph.dev/mcp-core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/jira:
     dependencies:
       '@modelcontextprotocol/sdk':

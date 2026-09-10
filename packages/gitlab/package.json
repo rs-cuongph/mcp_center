@@ -1,0 +1,27 @@
+{
+  "name": "@cuongph.dev/mcp-gitlab",
+  "version": "0.1.0",
+  "description": "MCP server for self-hosted GitLab — projects, issues, merge requests, repository, pipelines via REST API v4",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "bin": { "gitlab-mcp": "dist/server.js" },
+  "files": ["dist", "README.md", "LICENSE"],
+  "publishConfig": { "access": "public" },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/server.ts",
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm run build && pnpm run test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.2",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@cuongph.dev/mcp-core": "workspace:*"
+  }
+}
